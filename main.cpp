@@ -130,8 +130,40 @@ void shaftEncoding()
     LCD.WriteLine(left_encoder.Counts());
     LCD.Write("Actual RE Counts: ");
     LCD.WriteLine(right_encoder.Counts());
+}
 
-    return 0;
+void performanceTest1_moveTillLine() {
+    int motor_percent = 25;
+
+    while(!foundLine()) {
+        left_motor.SetPercent(motor_percent);
+        right_motor.SetPercent(motor_percent);
+
+        LCD.WriteLine("Line not found!");
+    }
+
+    LCD.WriteLine("Line found!");
+    
+    int expected_counts = 0;
+    turnToLine(motor_percent, expected_counts);
+}
+
+void turnToLine(int percent, int counts) {
+    //Reset encoder counts
+    right_encoder.ResetCounts();
+    left_encoder.ResetCounts();
+
+    //Set both motors to desired percent
+    right_motor.SetPercent(percent);
+    left_motor.SetPercent(-1*percent);
+
+    //While the average of the left and right encoder is less than counts,
+    //keep running motors
+    while((left_encoder.Counts() + right_encoder.Counts()) / 2. < counts);
+
+    //Turn off motors
+    right_motor.Stop();
+    left_motor.Stop();
 }
 
 
