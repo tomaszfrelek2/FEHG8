@@ -22,17 +22,117 @@
 #include <stdio.h>
 
 
-FEHMotor left_motor(FEHMotor::Motor0,9.0);
-FEHMotor right_motor(FEHMotor::Motor1,9.0);
+
 AnalogInputPin right_opt(FEHIO::P0_0);
 AnalogInputPin mid_opt(FEHIO::P0_1);
 AnalogInputPin left_opt(FEHIO::P0_2);
+AnalogInputPin cdsCell(DEHIO::P0_3);
+
 
 //Declarations for encoders & motors
 DigitalEncoder right_encoder(FEHIO::P0_0);
 DigitalEncoder left_encoder(FEHIO::P0_1);
 FEHMotor right_motor(FEHMotor::Motor0,9.0);
 FEHMotor left_motor(FEHMotor::Motor1,9.0);
+
+
+
+
+int main() {
+    
+}
+
+
+
+
+
+
+int cdsCriticalValue;
+//Returns true if a light is sensed, does not differentiate different colors of light
+bool senseLine(){
+    //If a light is sensed, return true
+    if(cdsCll.Value()< cdsCriticalValue){
+        return  true;
+    } else{
+        return false;
+    }
+
+}
+
+enum LineStates {
+    MIDDLE,
+    RIGHT,
+    LEFT
+};
+
+//Follows the line
+void followLine(){
+    int leftCriticalValue;
+    int rightCriticalValue;
+    int midCriticalValue;
+    int state = MIDDLE; // Set the initial state
+    while (true) { // I will follow this line forever!
+        switch(state) {
+            // If I am in the middle of the line...
+            case MIDDLE:
+                // Set motor powers for driving straight
+                /* Drive */
+
+                left_motor.SetPercent(25);
+                right_motor.SetPercent(25);
+
+                if (right_opt.Value() > rightCriticalValue)  {
+                    state = RIGHT; // update a new state
+                }
+                /* Code for if left sensor is on the line */
+
+                if (left_opt.Value() > leftCriticalValue)  {
+                    state = LEFT; // update a new state
+                }
+                
+                break;
+                
+
+            // If the right sensor is on the line...
+            case RIGHT:
+                left_motor.SetPercent(25);
+                right_motor.SetPercent(10);
+                /* Drive */
+                if( mid_opt.Value() > midCriticalValue ) {
+                    state = MIDDLE;
+                }
+
+                if (left_opt.Value() > leftCriticalValue)  {
+                    state = LEFT; // update a new state
+                }
+                break;
+
+            // If the left sensor is on the line...
+            case LEFT:
+                left_motor.SetPercent(10);
+                right_motor.SetPercent(25);
+
+
+                if( mid_opt.Value() > midCriticalValue ) {
+                    state = MIDDLE;
+                }
+
+                if (right_opt.Value() > rightCriticalValue)  {
+                    state = RIGHT; // update a new state
+                }
+
+            /* Mirror operation of RIGHT state */
+                break;
+
+            default: // Error. Something is very wrong.
+                left_motor.SetPercent(0);
+                right_motor.SetPercent(0);
+                break;
+
+        }
+// Sleep a bit
+        }
+}
 
 void move_forward(int percent, int counts) //using encoders
 {
@@ -133,82 +233,3 @@ void shaftEncoding()
 
     return 0;
 }
-
-
-int main() {
-    
-}
-
-
-
-
-enum LineStates {
-    MIDDLE,
-    RIGHT,
-    LEFT
-};
-void followLine(){
-    int state = MIDDLE; // Set the initial state
-    while (true) { // I will follow this line forever!
-        switch(state) {
-            // If I am in the middle of the line...
-            case MIDDLE:
-                // Set motor powers for driving straight
-                /* Drive */
-
-                left_motor.SetPercent(25);
-                right_motor.SetPercent(25);
-
-                if (right_opt.Value() > 2.0)  {
-                    state = RIGHT; // update a new state
-                }
-                /* Code for if left sensor is on the line */
-
-                if (left_opt.Value() > 2.2)  {
-                    state = LEFT; // update a new state
-                }
-                
-                break;
-                
-
-            // If the right sensor is on the line...
-            case RIGHT:
-                left_motor.SetPercent(25);
-                right_motor.SetPercent(10);
-                /* Drive */
-                if( mid_opt.Value() > 2.7 ) {
-                    state = MIDDLE;
-                }
-
-                if (left_opt.Value() > 2.2)  {
-                    state = LEFT; // update a new state
-                }
-                break;
-
-            // If the left sensor is on the line...
-            case LEFT:
-                left_motor.SetPercent(10);
-                right_motor.SetPercent(25);
-
-
-                if( mid_opt.Value() > 2.7 ) {
-                    state = MIDDLE;
-                }
-
-                if (right_opt.Value() > 2.0)  {
-                    state = RIGHT; // update a new state
-                }
-
-            /* Mirror operation of RIGHT state */
-                break;
-
-            default: // Error. Something is very wrong.
-                left_motor.SetPercent(0);
-                right_motor.SetPercent(0);
-                break;
-
-        }
-// Sleep a bit
-        }
-}
-
