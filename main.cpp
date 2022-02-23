@@ -46,6 +46,8 @@ FEHMotor right_motor(FEHMotor::Motor0,9.0);
 FEHMotor left_motor(FEHMotor::Motor1,9.0);
 bool senseLine();
 bool senseLight();
+void followLine();
+void turn_right(int , int );
 
 void testCdsCell(){
     LCD.Write("CDS value");
