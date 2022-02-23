@@ -45,15 +45,27 @@ FEHMotor left_motor(FEHMotor::Motor1,9.0);
 
 
 int main() {
-    //PseudoCode for JukeBox
-        //Robot waits until it senses the start light
-        //Robot moves foreword until it encounters the line, turns slightly
-        //Robot does 180 turn
-        //Robot follows the line until it detects the light
-        //Robot stops over the light
-        //Robot turns left or right, depending on the light color
-        //Robot drives forward until corner hits the jukebox
-        //Robot aligns itself with the jukebox
+//PseudoCode for JukeBox
+    //Robot waits until it senses the start light
+    while(!senseLight()){
+
+    }
+    //Robot moves foreword until it encounters the line
+    while(!senseLine()){
+        right_motor.setPercent(25);
+        left_motor.setPercent(25);
+    }
+    left_motor.SetPercent(0);
+    right_motor.SetPercent(0);
+
+    //Robot does 180 turn
+
+    //Robot follows the line until it detects the light
+
+    //Robot stops over the light
+    //Robot turns left or right, depending on the light color
+    //Robot drives forward until corner hits the jukebox
+    //Robot aligns itself with the jukebox
 
 }
 
