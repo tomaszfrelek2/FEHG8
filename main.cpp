@@ -33,69 +33,9 @@ AnalogInputPin left_opt(FEHIO::P0_2);
 
 
 
+
 int main() {
-    int state = MIDDLE; // Set the initial state
-    while (true) { // I will follow this line forever!
-        switch(state) {
-            // If I am in the middle of the line...
-            case MIDDLE:
-                // Set motor powers for driving straight
-                /* Drive */
-
-                left_motor.SetPercent(25);
-                right_motor.SetPercent(25);
-
-                if (right_opt.Value() > 2.0)  {
-                    state = RIGHT; // update a new state
-                }
-                /* Code for if left sensor is on the line */
-
-                if (left_opt.Value() > 2.2)  {
-                    state = LEFT; // update a new state
-                }
-                
-                break;
-                
-
-            // If the right sensor is on the line...
-            case RIGHT:
-                left_motor.SetPercent(25);
-                right_motor.SetPercent(10);
-                /* Drive */
-                if( mid_opt.Value() > 2.7 ) {
-                    state = MIDDLE;
-                }
-
-                if (left_opt.Value() > 2.2)  {
-                    state = LEFT; // update a new state
-                }
-                break;
-
-            // If the left sensor is on the line...
-            case LEFT:
-                left_motor.SetPercent(10);
-                right_motor.SetPercent(25);
-
-
-                if( mid_opt.Value() > 2.7 ) {
-                    state = MIDDLE;
-                }
-
-                if (right_opt.Value() > 2.0)  {
-                    state = RIGHT; // update a new state
-                }
-
-            /* Mirror operation of RIGHT state */
-                break;
-
-            default: // Error. Something is very wrong.
-                left_motor.SetPercent(0);
-                right_motor.SetPercent(0);
-                break;
-
-        }
-// Sleep a bit
-        }
+    
 }
 
 
