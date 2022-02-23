@@ -46,7 +46,6 @@ FEHMotor right_motor(FEHMotor::Motor0,9.0);
 FEHMotor left_motor(FEHMotor::Motor1,9.0);
 
 int main() {
-<<<<<<< HEAD
     //PseudoCode for JukeBox
         //Robot waits until it senses the start light
         //Robot moves foreword until it encounters the line, turns slightly
@@ -56,7 +55,6 @@ int main() {
         //Robot turns left or right, depending on the light color
         //Robot drives forward until corner hits the jukebox
         //Robot aligns itself with the jukebox
-=======
     //false is blue, true is red
     bool lightColor = false;
 
@@ -73,12 +71,15 @@ int main() {
     left_motor.setPercent(-2);
     sleep(100);
 
-    while(!senseLine()){
-        right_motor.setPercent(25);
-        left_motor.setPercent(25);
+    while(!senseLine()) {
+        left_motor.SetPercent(25);
+        right_motor.SetPercent(25);
     }
+    
     left_motor.SetPercent(0);
     right_motor.SetPercent(0);
+
+    turn_right(25, 326);
 
     //Robot turns
 
@@ -96,8 +97,6 @@ int main() {
     }
     //Robot drives forward until corner hits the jukebox
     //Robot aligns itself with the jukebox
-
->>>>>>> d44cc397b799e3904e77b8f77b44cd809495f78a
 }
 
 //Returns true if a light is sensed, false otherwise
@@ -192,36 +191,6 @@ void followLine(){
         }
 // Sleep a bit
         }
-}
-
-void moveTillLine() {
-    int motor_percent = 25;
-
-    while(!senseLine()) {
-        left_motor.SetPercent(motor_percent);
-        right_motor.SetPercent(motor_percent);
-    }
-    
-    int expected_counts = 326;
-    turnToLine(motor_percent, expected_counts);
-}
-
-void turnToLine(int percent, int counts) {
-    //Reset encoder counts
-    right_encoder.ResetCounts();
-    left_encoder.ResetCounts();
-
-    //Set both motors to desired percent
-    right_motor.SetPercent(-1*percent);
-    left_motor.SetPercent(percent);
-
-    //While the average of the left and right encoder is less than counts,
-    //keep running motors
-    while((left_encoder.Counts() + right_encoder.Counts()) / 2. < counts);
-
-    //Turn off motors
-    right_motor.Stop();
-    left_motor.Stop();
 }
 
 void move_forward(int percent, int counts) //using encoders
