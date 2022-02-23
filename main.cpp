@@ -32,8 +32,12 @@ int leftCriticalValue;
 int rightCriticalValue;
 int midCriticalValue;
 
-//limit value to detect light, sensor value must be lowwer to trigger light sensor
+//limit value to detect light, sensor value must be lower to trigger light sensor
 int cdsCriticalValue;
+//values lower, but still higher than red will be treated as blue
+int cdsBlue;
+//values lower will be treated as red
+int cdsRed;
 
 //Declarations for encoders & motors
 DigitalEncoder right_encoder(FEHIO::P0_0);
@@ -42,6 +46,7 @@ FEHMotor right_motor(FEHMotor::Motor0,9.0);
 FEHMotor left_motor(FEHMotor::Motor1,9.0);
 
 int main() {
+<<<<<<< HEAD
     //PseudoCode for JukeBox
         //Robot waits until it senses the start light
         //Robot moves foreword until it encounters the line, turns slightly
@@ -51,6 +56,48 @@ int main() {
         //Robot turns left or right, depending on the light color
         //Robot drives forward until corner hits the jukebox
         //Robot aligns itself with the jukebox
+=======
+    //false is blue, true is red
+    bool lightColor = false;
+
+
+//PseudoCode for JukeBox
+    //Robot waits until it senses the start light
+    while(!senseLight()){
+
+    }
+    //Robot moves rotates slightly, then moves forward until it encounters the line
+    
+    //turns robot
+    right_motor.setPercent(2);
+    left_motor.setPercent(-2);
+    sleep(100);
+
+    while(!senseLine()){
+        right_motor.setPercent(25);
+        left_motor.setPercent(25);
+    }
+    left_motor.SetPercent(0);
+    right_motor.SetPercent(0);
+
+    //Robot turns
+
+    //Robot follows the line until it ends
+    followLine();
+    //Robot detects the light color, default color is blue
+    if(cdsCell.Value < cdsred){
+        lightColor = true;
+    }
+    //Robot turns left(blue) or right(red), depending on the light color
+    if(lightColor){
+        turn_right(10,20);
+    }else{
+        turn_left(10,20);
+    }
+    //Robot drives forward until corner hits the jukebox
+    //Robot aligns itself with the jukebox
+
+>>>>>>> d44cc397b799e3904e77b8f77b44cd809495f78a
 }
 
 //Returns true if a light is sensed, false otherwise
@@ -84,7 +131,7 @@ enum LineStates {
 void followLine(){
     
     int state = MIDDLE; // Set the initial state
-    while (true) { // I will follow this line forever!
+    while (senseLine()) { // I will follow this line forever!
         switch(state) {
             // If I am in the middle of the line...
             case MIDDLE:
