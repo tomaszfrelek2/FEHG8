@@ -22,12 +22,18 @@
 #include <stdio.h>
 
 
-
+//eclarations of optical sensors and cds cells
 AnalogInputPin right_opt(FEHIO::P0_0);
 AnalogInputPin mid_opt(FEHIO::P0_1);
 AnalogInputPin left_opt(FEHIO::P0_2);
 AnalogInputPin cdsCell(DEHIO::P0_3);
+//minimum value to detect line, sensor value must be greater to trigger line sensors
+int leftCriticalValue;
+int rightCriticalValue;
+int midCriticalValue;
 
+//limit value to detect light, sensor value must be lowwer to trigger light sensor
+int cdsCriticalValue;
 
 //Declarations for encoders & motors
 DigitalEncoder right_encoder(FEHIO::P0_0);
@@ -39,25 +45,41 @@ FEHMotor left_motor(FEHMotor::Motor1,9.0);
 
 
 int main() {
-    
+    //PseudoCode for JukeBox
+        //Robot waits until it senses the start light
+        //Robot moves foreword until it encounters the line, turns slightly
+        //Robot does 180 turn
+        //Robot follows the line until it detects the light
+        //Robot stops over the light
+        //Robot turns left or right, depending on the light color
+        //Robot drives forward until corner hits the jukebox
+        //Robot aligns itself with the jukebox
+
 }
 
 
 
-
-
-
-int cdsCriticalValue;
-//Returns true if a light is sensed, does not differentiate different colors of light
+//Returns true if a light is sensed, false otherwise
 bool senseLine(){
+     if(left_opt.Value() > leftCriticalValue || right_opt.Value() > rightCriticalValue || mid_opt.Value() > midCriticalValue){
+         return true;
+     }else{
+         return false;
+     }
+}
+
+
+//Returns true if a light is sensed, does not differentiate different colors of light
+bool senseLight(){
     //If a light is sensed, return true
-    if(cdsCll.Value()< cdsCriticalValue){
+    if(cdsCell.Value()< cdsCriticalValue){
         return  true;
     } else{
         return false;
     }
 
 }
+
 
 enum LineStates {
     MIDDLE,
@@ -67,9 +89,7 @@ enum LineStates {
 
 //Follows the line
 void followLine(){
-    int leftCriticalValue;
-    int rightCriticalValue;
-    int midCriticalValue;
+    
     int state = MIDDLE; // Set the initial state
     while (true) { // I will follow this line forever!
         switch(state) {
