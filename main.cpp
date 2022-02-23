@@ -26,7 +26,7 @@
 AnalogInputPin right_opt(FEHIO::P0_0);
 AnalogInputPin mid_opt(FEHIO::P0_1);
 AnalogInputPin left_opt(FEHIO::P0_2);
-AnalogInputPin cdsCell(DEHIO::P0_0);
+AnalogInputPin cdsCell(FEHIO::P0_0);
 //minimum value to detect line, sensor value must be greater to trigger line sensors
 int leftCriticalValue;
 int rightCriticalValue;
@@ -44,6 +44,8 @@ DigitalEncoder right_encoder(FEHIO::P0_0);
 DigitalEncoder left_encoder(FEHIO::P0_1);
 FEHMotor right_motor(FEHMotor::Motor0,9.0);
 FEHMotor left_motor(FEHMotor::Motor1,9.0);
+bool senseLine();
+bool senseLight();
 
 void testCdsCell(){
     LCD.Write("CDS value");
@@ -69,10 +71,10 @@ int main() {
     //turns robot
     right_motor.setPercent(10);
     left_motor.setPercent(-10);
-    sleep(100);
+    Sleep(100);
 
     while(!senseLine()){
-        right_motor.setPercent(25);
+        right_motor.SetPercent(25);
         left_motor.setPercent(25);
     }
     left_motor.SetPercent(0);
@@ -83,7 +85,7 @@ int main() {
     //Robot follows the line until it ends
     followLine();
     //Robot detects the light color, default color is blue
-    if(cdsCell.Value < cdsred){
+    if(cdsCell.Value < cdsRed){
         lightColor = true;
     }
     //Robot turns left(blue) or right(red), depending on the light color
