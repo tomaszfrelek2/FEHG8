@@ -32,8 +32,12 @@ int leftCriticalValue;
 int rightCriticalValue;
 int midCriticalValue;
 
-//limit value to detect light, sensor value must be lowwer to trigger light sensor
+//limit value to detect light, sensor value must be lower to trigger light sensor
 int cdsCriticalValue;
+//values lower, but still higher than red will be treated as blue
+int cdsBlue;
+//values lower will be treated as red
+int cdsRed;
 
 //Declarations for encoders & motors
 DigitalEncoder right_encoder(FEHIO::P0_0);
@@ -45,12 +49,22 @@ FEHMotor left_motor(FEHMotor::Motor1,9.0);
 
 
 int main() {
+    //false is blue, true is red
+    bool lightColor = false;
+
+
 //PseudoCode for JukeBox
     //Robot waits until it senses the start light
     while(!senseLight()){
 
     }
-    //Robot moves rotates slightly, per instruction until it encounters the line
+    //Robot moves rotates slightly, then moves forward until it encounters the line
+    
+    //turns robot
+    right_motor.setPercent(2);
+    left_motor.setPercent(-2);
+    sleep(100);
+
     while(!senseLine()){
         right_motor.setPercent(25);
         left_motor.setPercent(25);
@@ -61,9 +75,17 @@ int main() {
     //Robot turns
 
     //Robot follows the line until it ends
-    while(senseLine()){}
-    //Robot stops over the light
-    //Robot turns left or right, depending on the light color
+    followLine();
+    //Robot detects the light color, default color is blue
+    if(cdsCell.Value < cdsred){
+        lightColor = true;
+    }
+    //Robot turns left(blue) or right(red), depending on the light color
+    if(lightColor){
+        turn_right(10,20);
+    }else{
+        turn_left(10,20);
+    }
     //Robot drives forward until corner hits the jukebox
     //Robot aligns itself with the jukebox
 
