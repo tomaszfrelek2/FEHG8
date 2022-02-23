@@ -26,7 +26,7 @@
 AnalogInputPin right_opt(FEHIO::P0_0);
 AnalogInputPin mid_opt(FEHIO::P0_1);
 AnalogInputPin left_opt(FEHIO::P0_2);
-AnalogInputPin cdsCell(DEHIO::P0_3);
+AnalogInputPin cdsCell(DEHIO::P0_0);
 //minimum value to detect line, sensor value must be greater to trigger line sensors
 int leftCriticalValue;
 int rightCriticalValue;
@@ -45,18 +45,16 @@ DigitalEncoder left_encoder(FEHIO::P0_1);
 FEHMotor right_motor(FEHMotor::Motor0,9.0);
 FEHMotor left_motor(FEHMotor::Motor1,9.0);
 
+void testCdsCell(){
+    LCD.Write("CDS value");
+    LCD.WriteLine(cdsCell.Value());
+}
 int main() {
-<<<<<<< HEAD
+    while(true){
+        testCdsCell();
+    }
     //PseudoCode for JukeBox
-        //Robot waits until it senses the start light
-        //Robot moves foreword until it encounters the line, turns slightly
-        //Robot does 180 turn
-        //Robot follows the line until it detects the light
-        //Robot stops over the light
-        //Robot turns left or right, depending on the light color
-        //Robot drives forward until corner hits the jukebox
-        //Robot aligns itself with the jukebox
-=======
+        
     //false is blue, true is red
     bool lightColor = false;
 
@@ -69,8 +67,8 @@ int main() {
     //Robot moves rotates slightly, then moves forward until it encounters the line
     
     //turns robot
-    right_motor.setPercent(2);
-    left_motor.setPercent(-2);
+    right_motor.setPercent(10);
+    left_motor.setPercent(-10);
     sleep(100);
 
     while(!senseLine()){
@@ -97,7 +95,6 @@ int main() {
     //Robot drives forward until corner hits the jukebox
     //Robot aligns itself with the jukebox
 
->>>>>>> d44cc397b799e3904e77b8f77b44cd809495f78a
 }
 
 //Returns true if a light is sensed, false otherwise
