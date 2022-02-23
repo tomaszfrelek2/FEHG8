@@ -22,17 +22,160 @@
 #include <stdio.h>
 
 
-FEHMotor left_motor(FEHMotor::Motor0,9.0);
-FEHMotor right_motor(FEHMotor::Motor1,9.0);
+//eclarations of optical sensors and cds cells
 AnalogInputPin right_opt(FEHIO::P0_0);
 AnalogInputPin mid_opt(FEHIO::P0_1);
 AnalogInputPin left_opt(FEHIO::P0_2);
+AnalogInputPin cdsCell(DEHIO::P0_3);
+//minimum value to detect line, sensor value must be greater to trigger line sensors
+int leftCriticalValue;
+int rightCriticalValue;
+int midCriticalValue;
+
+//limit value to detect light, sensor value must be lowwer to trigger light sensor
+int cdsCriticalValue;
 
 //Declarations for encoders & motors
 DigitalEncoder right_encoder(FEHIO::P0_0);
 DigitalEncoder left_encoder(FEHIO::P0_1);
 FEHMotor right_motor(FEHMotor::Motor0,9.0);
 FEHMotor left_motor(FEHMotor::Motor1,9.0);
+
+int main() {
+    //PseudoCode for JukeBox
+        //Robot waits until it senses the start light
+        //Robot moves foreword until it encounters the line, turns slightly
+        //Robot does 180 turn
+        //Robot follows the line until it detects the light
+        //Robot stops over the light
+        //Robot turns left or right, depending on the light color
+        //Robot drives forward until corner hits the jukebox
+        //Robot aligns itself with the jukebox
+}
+
+//Returns true if a light is sensed, false otherwise
+bool senseLine(){
+     if(left_opt.Value() > leftCriticalValue || right_opt.Value() > rightCriticalValue || mid_opt.Value() > midCriticalValue){
+         return true;
+     }else{
+         return false;
+     }
+}
+
+
+//Returns true if a light is sensed, does not differentiate different colors of light
+bool senseLight(){
+    //If a light is sensed, return true
+    if(cdsCell.Value()< cdsCriticalValue){
+        return  true;
+    } else{
+        return false;
+    }
+
+}
+
+enum LineStates {
+    MIDDLE,
+    RIGHT,
+    LEFT
+};
+
+//Follows the line
+void followLine(){
+    
+    int state = MIDDLE; // Set the initial state
+    while (true) { // I will follow this line forever!
+        switch(state) {
+            // If I am in the middle of the line...
+            case MIDDLE:
+                // Set motor powers for driving straight
+                /* Drive */
+
+                left_motor.SetPercent(25);
+                right_motor.SetPercent(25);
+
+                if (right_opt.Value() > rightCriticalValue)  {
+                    state = RIGHT; // update a new state
+                }
+                /* Code for if left sensor is on the line */
+
+                if (left_opt.Value() > leftCriticalValue)  {
+                    state = LEFT; // update a new state
+                }
+                
+                break;
+                
+
+            // If the right sensor is on the line...
+            case RIGHT:
+                left_motor.SetPercent(25);
+                right_motor.SetPercent(10);
+                /* Drive */
+                if( mid_opt.Value() > midCriticalValue ) {
+                    state = MIDDLE;
+                }
+
+                if (left_opt.Value() > leftCriticalValue)  {
+                    state = LEFT; // update a new state
+                }
+                break;
+
+            // If the left sensor is on the line...
+            case LEFT:
+                left_motor.SetPercent(10);
+                right_motor.SetPercent(25);
+
+
+                if( mid_opt.Value() > midCriticalValue ) {
+                    state = MIDDLE;
+                }
+
+                if (right_opt.Value() > rightCriticalValue)  {
+                    state = RIGHT; // update a new state
+                }
+
+            /* Mirror operation of RIGHT state */
+                break;
+
+            default: // Error. Something is very wrong.
+                left_motor.SetPercent(0);
+                right_motor.SetPercent(0);
+                break;
+
+        }
+// Sleep a bit
+        }
+}
+
+void moveTillLine() {
+    int motor_percent = 25;
+
+    while(!senseLine()) {
+        left_motor.SetPercent(motor_percent);
+        right_motor.SetPercent(motor_percent);
+    }
+    
+    int expected_counts = 326;
+    turnToLine(motor_percent, expected_counts);
+}
+
+void turnToLine(int percent, int counts) {
+    //Reset encoder counts
+    right_encoder.ResetCounts();
+    left_encoder.ResetCounts();
+
+    //Set both motors to desired percent
+    right_motor.SetPercent(-1*percent);
+    left_motor.SetPercent(percent);
+
+    //While the average of the left and right encoder is less than counts,
+    //keep running motors
+    while((left_encoder.Counts() + right_encoder.Counts()) / 2. < counts);
+
+    //Turn off motors
+    right_motor.Stop();
+    left_motor.Stop();
+}
 
 void move_forward(int percent, int counts) //using encoders
 {
@@ -54,7 +197,6 @@ void move_forward(int percent, int counts) //using encoders
 }
 
 void turn_right(int percent, int counts) //using encoders
-
 {
     //Reset encoder counts
     right_encoder.ResetCounts();
@@ -75,7 +217,6 @@ void turn_right(int percent, int counts) //using encoders
 }
 
 void turn_left(int percent, int counts) //using encoders
-
 {
     //Reset encoder counts
     right_encoder.ResetCounts();
@@ -131,116 +272,3 @@ void shaftEncoding()
     LCD.Write("Actual RE Counts: ");
     LCD.WriteLine(right_encoder.Counts());
 }
-
-void performanceTest1_moveTillLine() {
-    int motor_percent = 25;
-
-    while(!foundLine()) {
-        left_motor.SetPercent(motor_percent);
-        right_motor.SetPercent(motor_percent);
-
-        LCD.WriteLine("Line not found!");
-    }
-
-    LCD.WriteLine("Line found!");
-    
-    int expected_counts = 0;
-    turnToLine(motor_percent, expected_counts);
-}
-
-void turnToLine(int percent, int counts) {
-    //Reset encoder counts
-    right_encoder.ResetCounts();
-    left_encoder.ResetCounts();
-
-    //Set both motors to desired percent
-    right_motor.SetPercent(percent);
-    left_motor.SetPercent(-1*percent);
-
-    //While the average of the left and right encoder is less than counts,
-    //keep running motors
-    while((left_encoder.Counts() + right_encoder.Counts()) / 2. < counts);
-
-    //Turn off motors
-    right_motor.Stop();
-    left_motor.Stop();
-}
-
-
-int main() {
-    
-}
-
-
-
-
-enum LineStates {
-    MIDDLE,
-    RIGHT,
-    LEFT
-};
-void followLine(){
-    int state = MIDDLE; // Set the initial state
-    while (true) { // I will follow this line forever!
-        switch(state) {
-            // If I am in the middle of the line...
-            case MIDDLE:
-                // Set motor powers for driving straight
-                /* Drive */
-
-                left_motor.SetPercent(25);
-                right_motor.SetPercent(25);
-
-                if (right_opt.Value() > 2.0)  {
-                    state = RIGHT; // update a new state
-                }
-                /* Code for if left sensor is on the line */
-
-                if (left_opt.Value() > 2.2)  {
-                    state = LEFT; // update a new state
-                }
-                
-                break;
-                
-
-            // If the right sensor is on the line...
-            case RIGHT:
-                left_motor.SetPercent(25);
-                right_motor.SetPercent(10);
-                /* Drive */
-                if( mid_opt.Value() > 2.7 ) {
-                    state = MIDDLE;
-                }
-
-                if (left_opt.Value() > 2.2)  {
-                    state = LEFT; // update a new state
-                }
-                break;
-
-            // If the left sensor is on the line...
-            case LEFT:
-                left_motor.SetPercent(10);
-                right_motor.SetPercent(25);
-
-
-                if( mid_opt.Value() > 2.7 ) {
-                    state = MIDDLE;
-                }
-
-                if (right_opt.Value() > 2.0)  {
-                    state = RIGHT; // update a new state
-                }
-
-            /* Mirror operation of RIGHT state */
-                break;
-
-            default: // Error. Something is very wrong.
-                left_motor.SetPercent(0);
-                right_motor.SetPercent(0);
-                break;
-
-        }
-// Sleep a bit
-        }
-}
-
