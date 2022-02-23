@@ -50,7 +50,7 @@ int main() {
     while(!senseLight()){
 
     }
-    //Robot moves foreword until it encounters the line
+    //Robot moves rotates slightly, per instruction until it encounters the line
     while(!senseLine()){
         right_motor.setPercent(25);
         left_motor.setPercent(25);
@@ -58,10 +58,10 @@ int main() {
     left_motor.SetPercent(0);
     right_motor.SetPercent(0);
 
-    //Robot does 180 turn
+    //Robot turns
 
-    //Robot follows the line until it detects the light
-
+    //Robot follows the line until it ends
+    while(senseLine()){}
     //Robot stops over the light
     //Robot turns left or right, depending on the light color
     //Robot drives forward until corner hits the jukebox
@@ -103,7 +103,7 @@ enum LineStates {
 void followLine(){
     
     int state = MIDDLE; // Set the initial state
-    while (true) { // I will follow this line forever!
+    while (senseLine()) { // I will follow this line forever!
         switch(state) {
             // If I am in the middle of the line...
             case MIDDLE:
