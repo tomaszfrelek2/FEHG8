@@ -22,41 +22,57 @@
 #include <stdio.h>
 
 
-//eclarations of optical sensors and cds cells
-AnalogInputPin right_opt(FEHIO::P0_0);
-AnalogInputPin mid_opt(FEHIO::P0_1);
-AnalogInputPin left_opt(FEHIO::P0_2);
+//eclarations of optical sensors and cds cells and bump switches
+AnalogInputPin right_opt(FEHIO::P1_3);
+AnalogInputPin mid_opt(FEHIO::P1_5);
+AnalogInputPin left_opt(FEHIO::P1_7);
 AnalogInputPin cdsCell(FEHIO::P0_0);
+    
+DigitalInputPin topLeftSwitch(FEHIO::P3_0);
+DigitalInputPin topRightSwitch(FEHIO::P0_7);
+
+
 //minimum value to detect line, sensor value must be greater to trigger line sensors
-int leftCriticalValue;
-int rightCriticalValue;
-int midCriticalValue;
+int leftCriticalValue = 2.3;
+int rightCriticalValue =2.5;
+int midCriticalValue = 2.4 ;
 
 //limit value to detect light, sensor value must be lower to trigger light sensor
-int cdsCriticalValue;
+int cdsCriticalValue = 1.5;
 //values lower, but still higher than red will be treated as blue
 int cdsBlue;
 //values lower will be treated as red
-int cdsRed;
+int cdsRed = 0.85;
 
 //Declarations for encoders & motors
 DigitalEncoder right_encoder(FEHIO::P0_0);
 DigitalEncoder left_encoder(FEHIO::P0_1);
+ 
 FEHMotor right_motor(FEHMotor::Motor0,9.0);
 FEHMotor left_motor(FEHMotor::Motor1,9.0);
 bool senseLine();
 bool senseLight();
 void followLine();
 void turn_right(int , int );
+void turn_left(int , int );
+void turnToLine(int,int);
 
 void testCdsCell(){
-    LCD.Write("CDS value");
+    LCD.Write("CDS value: ");
     LCD.WriteLine(cdsCell.Value());
+    LCD.Write("mid value"); 
+    LCD.WriteLine(mid_opt.Value());
+    LCD.Write("right value");
+    LCD.WriteLine(right_opt.Value());
+    LCD.Write("left value");
+    LCD.WriteLine(left_opt.Value());
+    Sleep(3.0);
 }
 int main() {
-    while(true){
-        testCdsCell();
-    }
+        while(true){
+              testCdsCell();
+             
+         }
     //PseudoCode for JukeBox
         
     //false is blue, true is red
@@ -65,43 +81,119 @@ int main() {
 
 //PseudoCode for JukeBox
     //Robot waits until it senses the start light
-    while(!senseLight()){
+     while(!senseLight()){
 
     }
     //Robot moves rotates slightly, then moves forward until it encounters the line
     
-    //turns robot
-    right_motor.setPercent(10);
-    left_motor.setPercent(-10);
-    Sleep(100);
+    //moves robot forweard to clear starting box, and turns it
+    
+    right_motor.SetPercent(25);
+    left_motor.SetPercent(25);
+    
 
+    Sleep(2.0);
+    
+    LCD.WriteLine("Moved");
+
+    // right_motor.SetPercent(5);
+    // left_motor.SetPercent(-5);
+    // Sleep(1.0);
+    
+
+    // LCD.WriteLine("Turned");
+    //runs until it hits line
     while(!senseLine()){
         right_motor.SetPercent(25);
-        left_motor.setPercent(25);
+        left_motor.SetPercent(25);
     }
+    LCD.Write("mid value");
+    LCD.WriteLine(mid_opt.Value());
+    LCD.Write("right value");
+    LCD.WriteLine(right_opt.Value());
+    LCD.Write("left value");
+    LCD.WriteLine(left_opt.Value());
+    
+    LCD.WriteLine("Found Line");
+    //Only sleep for crayolaBot
+    //----------
+    Sleep(1.0);
+    //-----------
+    
     left_motor.SetPercent(0);
     right_motor.SetPercent(0);
+    Sleep(2.0);
+    //Robot turns to face jukebox
+    right_motor.SetPercent(25);
+    left_motor.SetPercent(-25);
+    Sleep(2.0);
+    right_motor.SetPercent(0);
+    left_motor.SetPercent(0);
 
-    //Robot turns
 
     //Robot follows the line until it ends
-    followLine();
-    //Robot detects the light color, default color is blue
-    if(cdsCell.Value < cdsRed){
-        lightColor = true;
-    }
-    //Robot turns left(blue) or right(red), depending on the light color
-    if(lightColor){
-        turn_right(10,20);
-    }else{
-        turn_left(10,20);
-    }
-    //Robot drives forward until corner hits the jukebox
-    //Robot aligns itself with the jukebox
+     followLine();
+    //only for crayolabot
+     //------------------
+     //turns
+     right_motor.SetPercent(-25);
+     left_motor.SetPercent(25);
+     Sleep(.2);
+     //inches forward
+     right_motor.SetPercent(25);
+     left_motor.SetPercent(25);
+     Sleep(.66);
+     right_motor.SetPercent(0);
+     left_motor.SetPercent(0);
+    //-------------------
 
+     LCD.WriteLine("Turned");
+     LCD.Write("CDS: ");
+     LCD.Write(cdsCell.Value());
+    // //Robot detects the light color, default color is blue
+     if(cdsCell.Value() < cdsRed){
+         lightColor = true;
+     }
+     LCD.Write("CDS: ");
+     LCD.Write(lightColor);
+
+    // //Robot turns left(blue) or right(red), depending on the light color
+     if(lightColor){
+        right_motor.SetPercent(-25);
+        left_motor.SetPercent(25);
+        Sleep(.2);
+     }else{
+        right_motor.SetPercent(25);
+        left_motor.SetPercent(-25);
+        Sleep(.2);
+    }
+     right_motor.SetPercent(0);
+     left_motor.SetPercent(0);
+    //Robot drives forward until a corner hits the jukebox
+    while(topLeftSwitch.Value() && topRightSwitch.Value()){
+        right_motor.SetPercent(25);
+        left_motor.SetPercent(25);
+    }
+    //if the top left switch is pressed down, allign the right side of the robot
+    
+    if(!topLeftSwitch.Value()){
+        while(topRightSwitch.Value()){
+            right_motor.SetPercent(25);
+            left_motor.SetPercent(0);
+        }
+    }//if the top right switch is pressed down, allign the left side of the robot
+    else if(!topRightSwitch.Value()){
+        while(topLeftSwitch.Value()){
+            right_motor.SetPercent(0);
+            left_motor.SetPercent(25);
+        }
+    }
+    //Robot aligns itself with the jukebox
+    right_motor.SetPercent(0);
+    left_motor.SetPercent(0);
 }
 
-//Returns true if a light is sensed, false otherwise
+//Returns true if a line is sensed, false otherwise
 bool senseLine(){
      if(left_opt.Value() > leftCriticalValue || right_opt.Value() > rightCriticalValue || mid_opt.Value() > midCriticalValue){
          return true;
@@ -114,7 +206,7 @@ bool senseLine(){
 //Returns true if a light is sensed, does not differentiate different colors of light
 bool senseLight(){
     //If a light is sensed, return true
-    if(cdsCell.Value()< cdsCriticalValue){
+    if(cdsCell.Value() < cdsCriticalValue){
         return  true;
     } else{
         return false;
@@ -193,6 +285,8 @@ void followLine(){
         }
 // Sleep a bit
         }
+        left_motor.SetPercent(0);
+        right_motor.SetPercent(0);
 }
 
 void moveTillLine() {
