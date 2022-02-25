@@ -411,3 +411,8 @@ void time() {
     right_motor.Stop();
     left_motor.Stop();
 }
+
+void hard_code() {
+    move_forward(25, 738);
+    turn_left(25, 245);
+}
