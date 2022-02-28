@@ -78,24 +78,8 @@ void testSensors(){
     Sleep(3.0);
 }
 
-int main() {
-        //jukeBoxButton();
-        while(true){
-            testSensors();
-        }
-        goFromJukeBoxToRamp();
-            // while(true){
-            //     left_motor.SetPercent(-25);
-            //     right_motor.SetPercent(25);
-
-
-            //  }
+void setUpForJukeBox(){
     //PseudoCode for JukeBox
-        
-    
-
-
-//PseudoCode for JukeBox
     //Robot waits until it senses the start light
     //  while(!senseLight()){
 
@@ -123,19 +107,15 @@ int main() {
         right_motor.SetPercent(25);
         left_motor.SetPercent(-25);
     }
-    LCD.Write("mid value");
-    LCD.WriteLine(mid_opt.Value());
-    LCD.Write("right value");
-    LCD.WriteLine(right_opt.Value());
-    LCD.Write("left value");
-    LCD.WriteLine(left_opt.Value());
+    // LCD.Write("mid value");
+    // LCD.WriteLine(mid_opt.Value());
+    // LCD.Write("right value");
+    // LCD.WriteLine(right_opt.Value());
+    // LCD.Write("left value");
+    // LCD.WriteLine(left_opt.Value());
     
     LCD.WriteLine("Found Line");
-    //Only sleep for crayolaBot
-    //----------
-    //Sleep(1.0);
-    //-----------
-    
+   
     left_motor.SetPercent(0);
     right_motor.SetPercent(0);
     Sleep(2.0);
@@ -149,24 +129,21 @@ int main() {
 
     //Robot follows the line until it ends
     followLine();
-    //only for crayolabot
-     //------------------
-     //turns
-    // LCD.WriteLine("Turned");
 
-    //  right_motor.SetPercent(-25);
-    //  left_motor.SetPercent(-25);
-    //  Sleep(.2);
-    //  //inches forward
-    //  right_motor.SetPercent(25);
-    //  left_motor.SetPercent(-25);
-    //  Sleep(.66);
-    //  right_motor.SetPercent(0);
-    //  left_motor.SetPercent(0);
-    //-------------------
 
      LCD.WriteLine("Turned");
-     jukeBoxButton();
+}
+
+int main() {
+        setUpForJukeBox();
+        jukeBoxButton();
+        goFromJukeBoxToRamp();
+            
+        
+    
+
+
+
 
 }
 void jukeBoxButton(){
