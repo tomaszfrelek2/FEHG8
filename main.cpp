@@ -196,8 +196,8 @@ void jukeBoxButton(){
      left_motor.SetPercent(0);
     //Robot drives forward until a corner hits the jukebox
     while(topLeftSwitch.Value() && topRightSwitch.Value()){
-        right_motor.SetPercent(25);
-        left_motor.SetPercent(-25);
+        right_motor.SetPercent(50);
+        left_motor.SetPercent(-50);
     }
     //if the top left switch is pressed down, allign the right side of the robot
     
