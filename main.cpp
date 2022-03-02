@@ -133,11 +133,13 @@ void setUpForJukeBox(){
 
      LCD.WriteLine("Turned");
 }
-
-int main() {
+void firstPreformanceTask(){
         setUpForJukeBox();
         jukeBoxButton();
         goFromJukeBoxToRamp();
+}
+int main() {
+        
 }
 void jukeBoxButton(){
     //false is blue, true is red
