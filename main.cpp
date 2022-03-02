@@ -138,8 +138,32 @@ void firstPreformanceTask(){
         jukeBoxButton();
         goFromJukeBoxToRamp();
 }
+
 int main() {
-        
+ //Pseudocode for 2nd preformance task
+ //Robot navigates to the top of the ramp
+ move_forward(25,19 * 41);
+ turn_right(25,3*41);
+ move_forward(25,26*41);
+ // robot turns left and goes until it finds the line
+ turn_left(25,3*41);
+ while(!senseLine()){
+     left_motor.SetPercent(-25);
+     right_motor.SetPercent(25);
+ }
+ 
+ //robot turns to allign with line
+ turn_left(25,6*41);
+ // robot follows line to sink
+ while(topLeftSwitch.Value() && topRightSwitch.Value()){
+    followLine();
+ }
+ left_motor.SetPercent(0);
+ right_motor.SetPercent(0);
+ Sleep(2.0);
+ // robot alligns itself with sink-tbd
+ //robot deposits tray
+ //robot backs up       
 }
 void jukeBoxButton(){
     //false is blue, true is red
@@ -265,7 +289,7 @@ enum LineStates {
 void followLine(){
     
     int state = MIDDLE; // Set the initial state
-    while (senseLine()) { // I will follow this line forever!
+    while (senseLine() && (topLeftSwitch.Value() || topRightSwitch.Value())) { // I will follow this line while at least one of the bumper switches is unpressed
         switch(state) {
             // If I am in the middle of the line...
             case MIDDLE:
