@@ -138,6 +138,10 @@ void firstPreformanceTask(){
         jukeBoxButton();
         goFromJukeBoxToRamp();
 }
+void turnTester(double inches){
+    turn_right(25,(int) (inches * 41));
+    Sleep(2.0);
+}
 
 int main() {
  //Pseudocode for 2nd preformance task
@@ -155,7 +159,7 @@ int main() {
  //robot turns to allign with line
  turn_left(25,6*41);
  // robot follows line to sink
- while(topLeftSwitch.Value() && topRightSwitch.Value()){
+ while(topLeftSwitch.Value() || topRightSwitch.Value()){
     followLine();
  }
  left_motor.SetPercent(0);
@@ -163,7 +167,23 @@ int main() {
  Sleep(2.0);
  // robot alligns itself with sink-tbd
  //robot deposits tray
- //robot backs up       
+ //robot backs up
+ move_forward(-25,1 * 41);
+ //robot turns 45 degrees left
+ turn_left(25,3*41);
+ //robot moves 5.5 inches forward
+ move_forward(52, 5*41 + 21);  //5.5 inches 
+ //robot turns 45 degrees left 
+ turn_left(25,3*41);
+ //robot moves forward until it rams the wall
+ while(topLeftSwitch.Value() || topRightSwitch.Value()){
+    left_motor.SetPercent(-25);
+    right_motor.SetPercent(25);
+ }   
+ Sleep(2.0);
+ //robot extends "pusher"
+ //Robot backs up
+ move_forwards(-15,5*41);
 }
 void jukeBoxButton(){
     //false is blue, true is red
