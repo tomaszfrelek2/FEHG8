@@ -56,6 +56,7 @@ void followLine();
 void turn_right(int , int );
 void turn_left(int , int );
 void turnToLine(int,int);
+void move_forward(int, int);
 
 void testCdsCell(){
     LCD.Write("CDS value: ");
@@ -69,6 +70,11 @@ void testCdsCell(){
     Sleep(3.0);
 }
 int main() {
+    while(true) {
+        move_forward(25, 738);
+        turn_left(25, 245);
+        Sleep(5.0);
+    }
     //PseudoCode for JukeBox
         //Robot waits until it senses the start light
         //Robot moves foreword until it encounters the line, turns slightly
