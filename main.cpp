@@ -138,13 +138,6 @@ int main() {
         setUpForJukeBox();
         jukeBoxButton();
         goFromJukeBoxToRamp();
-            
-        
-    
-
-
-
-
 }
 void jukeBoxButton(){
     //false is blue, true is red
