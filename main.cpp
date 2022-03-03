@@ -185,6 +185,8 @@ int main() {
  Sleep(2.0);
  // robot alligns itself with sink-tbd
  //robot deposits tray
+arm_servo.SetDegree(130);
+
  //robot backs up
  move_forward(-25,1 * 41);
  //robot turns 45 degrees left
