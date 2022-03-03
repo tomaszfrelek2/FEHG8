@@ -165,7 +165,18 @@ void turnTester(double inches){
 }
 
 int main() {
-    
+while(true) {
+    int turn90 = (int) (inchToCount * 6.68);
+    turn_left(25, turn90);
+    LCD.Write("Left 90 count? ");
+    LCD.WriteLine(turn90);
+    Sleep(2.0);
+    turn_right(25, turn90);
+    LCD.Write("Right 90 count? ");
+    LCD.WriteLine(turn90);
+    Sleep(5.0);
+}
+
     for(int i = 0; i < 31; i++) {
         inchToCountArray[i] = i * inchToCount;
     }
