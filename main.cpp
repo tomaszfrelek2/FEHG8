@@ -20,7 +20,8 @@
 #include <FEHSD.h>
 #include <string.h>
 #include <stdio.h>
-
+//90 degree = 3.34 inches, 136 counts
+//45 dergree = 1.66 inches, 68 counts
 
 //eclarations of optical sensors and cds cells and bump switches
 AnalogInputPin right_opt(FEHIO::P1_3);
@@ -35,9 +36,9 @@ DigitalInputPin bottomRightSwitch(FEHIO::P0_1);
 
 
 //minimum value to detect line, sensor value must be greater to trigger line sensors
-float leftCriticalValue = 2.5;
-float rightCriticalValue =2.7;
-float midCriticalValue = 2.6;
+float leftCriticalValue = 2.0;
+float rightCriticalValue =1.0;
+float midCriticalValue = 2.5;
 
 //limit value to detect light, sensor value must be lower to trigger light sensor
 float cdsCriticalValue = 1.7;
@@ -47,13 +48,15 @@ int cdsBlue;
 float cdsRed = 0.8;
 
 //Declarations for encoders & motors
- DigitalEncoder right_encoder(FEHIO::P2_0);
- DigitalEncoder left_encoder(FEHIO::P2_1);
+ DigitalEncoder right_encoder(FEHIO::P1_0);
+ DigitalEncoder left_encoder(FEHIO::P2_0);
  
 FEHMotor right_motor(FEHMotor::Motor0,9.0);\
 //left motor is inverted
 FEHMotor left_motor(FEHMotor::Motor1,9.0);
 FEHMotor new_motor(FEHMotor::Motor2,9.0);
+//arm servo
+FEHServo arm_servo(FEHServo::Servo3);
 
 bool senseLine();
 bool senseLight();
@@ -75,6 +78,10 @@ void testSensors(){
     LCD.WriteLine(right_opt.Value());
     LCD.Write("left value");
     LCD.WriteLine(left_opt.Value());
+    LCD.Write("top left switch");
+    LCD.WriteLine(topLeftSwitch.Value());
+    LCD.Write("top right switch");
+    LCD.WriteLine(topRightSwitch.Value());
     Sleep(3.0);
 }
 
@@ -139,29 +146,40 @@ void firstPreformanceTask(){
         goFromJukeBoxToRamp();
 }
 void turnTester(double inches){
-    turn_right(25,(int) (inches * 41));
-    Sleep(2.0);
+    int turnRad = (int) (inches * 41);
+    turn_right(25, turnRad);
+    LCD.WriteLine(turnRad);
+    Sleep(3.0);
 }
-
+void setUpServo(){
+    arm_servo.SetMin(650);
+    arm_servo.SetMax(1830);//Set arm servo to 0 degrees robot_arm.SetDegree(0);
+    arm_servo.SetDegree(180);
+}
 int main() {
+    //90 degree = 3.34 inches, 136 counts
+//45 dergree = 1.66 inches, 68 counts
+
  //Pseudocode for 2nd preformance task
+ setUpServo();
  //Robot navigates to the top of the ramp
+
  move_forward(25,19 * 41);
- turn_right(25,3*41);
+ turn_right(25,68);
  move_forward(25,26*41);
  // robot turns left and goes until it finds the line
- turn_left(25,3*41);
+ turn_left(25,68);
  while(!senseLine()){
      left_motor.SetPercent(-25);
      right_motor.SetPercent(25);
  }
  
  //robot turns to allign with line
- turn_left(25,6*41);
+ turn_left(25,136);
  // robot follows line to sink
- while(topLeftSwitch.Value() || topRightSwitch.Value()){
+ //while(topLeftSwitch.Value() || topRightSwitch.Value()){
     followLine();
- }
+ //}
  left_motor.SetPercent(0);
  right_motor.SetPercent(0);
  Sleep(2.0);
@@ -170,11 +188,11 @@ int main() {
  //robot backs up
  move_forward(-25,1 * 41);
  //robot turns 45 degrees left
- turn_left(25,3*41);
+ turn_left(25,68);
  //robot moves 5.5 inches forward
  move_forward(52, 5*41 + 21);  //5.5 inches 
  //robot turns 45 degrees left 
- turn_left(25,3*41);
+ turn_left(25,68);
  //robot moves forward until it rams the wall
  while(topLeftSwitch.Value() || topRightSwitch.Value()){
     left_motor.SetPercent(-25);
@@ -183,7 +201,7 @@ int main() {
  Sleep(2.0);
  //robot extends "pusher"
  //Robot backs up
- move_forwards(-15,5*41);
+ move_forward(-15,5*41);
 }
 void jukeBoxButton(){
     //false is blue, true is red
@@ -316,7 +334,7 @@ void followLine(){
                 // Set motor powers for driving straight
                 /* Drive */
 
-                left_motor.SetPercent(25);
+                left_motor.SetPercent(-25);
                 right_motor.SetPercent(25);
 
                 if (right_opt.Value() > rightCriticalValue)  {
@@ -333,7 +351,7 @@ void followLine(){
 
             // If the right sensor is on the line...
             case RIGHT:
-                left_motor.SetPercent(25);
+                left_motor.SetPercent(-25);
                 right_motor.SetPercent(5);
                 /* Drive */
                 if( mid_opt.Value() > midCriticalValue ) {
@@ -347,7 +365,7 @@ void followLine(){
 
             // If the left sensor is on the line...
             case LEFT:
-                left_motor.SetPercent(5);
+                left_motor.SetPercent(-5);
                 right_motor.SetPercent(25);
 
 
