@@ -51,7 +51,7 @@ float cdsRed = 0.8;
  DigitalEncoder right_encoder(FEHIO::P1_0);
  DigitalEncoder left_encoder(FEHIO::P2_0);
  
-FEHMotor right_motor(FEHMotor::Motor0,9.0);\
+FEHMotor right_motor(FEHMotor::Motor0,9.0);
 //left motor is inverted
 FEHMotor left_motor(FEHMotor::Motor1,9.0);
 FEHMotor new_motor(FEHMotor::Motor2,9.0);
@@ -160,8 +160,8 @@ void setUpServo(){
     arm_servo.SetMax(1830);
     arm_servo.SetDegree(180);
     //slide servo starts down
-    slide_servo.SetMin(790);
-    slide_servo.SetMax(2500);
+    slide_servo.SetMin(540);
+    slide_servo.SetMax(2311);
     slide_servo.SetDegree(0);
 }
 void goUpRamp(){
@@ -186,7 +186,9 @@ void goUpRamp(){
  Sleep(.80);
 }
 int main() {
-
+    while(!senseLight()){
+        
+    }
     goUpRamp();
     // while(true){
     //     LCD.Write("LeftSwitch: ");
@@ -212,30 +214,34 @@ int main() {
  //robot turns to allign with sink
 left_motor.SetPercent(25);
  right_motor.SetPercent(25);
- Sleep(1.95);
+ Sleep(1.7);
 
 
      //robot rams the sink
+     
      left_motor.SetPercent(-25);
     right_motor.SetPercent(25);
-    
+
+Sleep(1.5);
  
 
  
- Sleep(1.0);
  left_motor.SetPercent(0);
- right_motor.SetPercent(0);
+ right_motor.SetPercent(25);
  Sleep(1.0);
  // robot alligns itself with sink-tbd
  //robot deposits tray
-arm_servo.SetDegree(180);
+arm_servo.SetDegree(50);
 Sleep(2.0);
 slide_servo.SetDegree(180);
 arm_servo.SetDegree(170);
  //robot backs up
- left_motor.SetPercent(25);
- right_motor.SetPercent(-25);
+ //while(!senseLine()){
+     left_motor.SetPercent(25);
+    right_motor.SetPercent(-25);
+ //}
  Sleep(1.0);
+ 
  //robot turns 45 degrees left
  left_motor.SetPercent(25);
  right_motor.SetPercent(25);
@@ -243,44 +249,48 @@ arm_servo.SetDegree(170);
  //robot moves 5.5 inches forward
  left_motor.SetPercent(-25);
  right_motor.SetPercent(25);
- Sleep(2.85);
+ Sleep(2.8);
  //robot turns 45 degrees left 
  left_motor.SetPercent(25);
  right_motor.SetPercent(25);
- Sleep(.65);
-//move forward
-  left_motor.SetPercent(-25);
- right_motor.SetPercent(25);
- Sleep(.90);
- //turn right
- left_motor.SetPercent(-25);
- right_motor.SetPercent(-25);
- Sleep(.3);
- //move forward slightly
- left_motor.SetPercent(-25);
- right_motor.SetPercent(25);
- Sleep(.50);
- //straighten out
- left_motor.SetPercent(25);
- right_motor.SetPercent(25);
- Sleep(.3);
+ Sleep(.60);
+
  
  //robot moves forward until it rams the wall
  while(topLeftSwitch.Value() || topRightSwitch.Value()){
     left_motor.SetPercent(-25);
     right_motor.SetPercent(25);
  }   
+
+//  //move backward
+//   left_motor.SetPercent(25);
+//  right_motor.SetPercent(-25);
+//  Sleep(.20);
+//  //turn right
+//  left_motor.SetPercent(-25);
+//  right_motor.SetPercent(-25);
+//  Sleep(.3);
+//  //move forward slightly
+//  left_motor.SetPercent(-25);
+//  right_motor.SetPercent(25);
+//  Sleep(.2);
+//  left_motor.SetPercent(0);
+//  //straighten out
+// //  left_motor.SetPercent(25);
+// //  right_motor.SetPercent(25);
+//  Sleep(.3);
  //robot extends "pusher"
- slide_servo.SetDegree(110);
+ slide_servo.SetDegree(90);
  //Robot backs up
  left_motor.SetPercent(25);
  right_motor.SetPercent(-25);
- Sleep(1.8);
+ Sleep(2.0);
 
  //robot turns towards burger
  left_motor.SetPercent(25);
  right_motor.SetPercent(0);
- Sleep(1.3);
+ Sleep(1.75);
+ slide_servo.SetDegree(0);
  while(topLeftSwitch.Value() || topRightSwitch.Value()){
     left_motor.SetPercent(-25);
     right_motor.SetPercent(25);
