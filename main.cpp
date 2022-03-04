@@ -33,11 +33,11 @@ DigitalInputPin topLeftSwitch(FEHIO::P3_0);
 DigitalInputPin topRightSwitch(FEHIO::P0_7);
 DigitalInputPin bottomLeftSwitch(FEHIO::P3_1);
 DigitalInputPin bottomRightSwitch(FEHIO::P0_1);
-
+int counts = 19;
 
 //minimum value to detect line, sensor value must be greater to trigger line sensors
 float leftCriticalValue = 2.0;
-float rightCriticalValue =1.0;
+float rightCriticalValue = 1.0;
 float midCriticalValue = 2.5;
 
 //limit value to detect light, sensor value must be lower to trigger light sensor
@@ -55,8 +55,11 @@ FEHMotor right_motor(FEHMotor::Motor0,9.0);\
 //left motor is inverted
 FEHMotor left_motor(FEHMotor::Motor1,9.0);
 FEHMotor new_motor(FEHMotor::Motor2,9.0);
-//arm servo
+//arm servo, max is up, min is down
 FEHServo arm_servo(FEHServo::Servo3);
+//min is up, max is down
+FEHServo slide_servo(FEHServo::Servo7);
+
 
 bool senseLine();
 bool senseLight();
@@ -123,9 +126,9 @@ void setUpForJukeBox(){
     
     LCD.WriteLine("Found Line");
    
-    left_motor.SetPercent(0);
-    right_motor.SetPercent(0);
-    Sleep(2.0);
+    // left_motor.SetPercent(0);
+    // right_motor.SetPercent(0);
+    // Sleep(2.0);
     //Robot turns to face jukebox
     right_motor.SetPercent(25);
     left_motor.SetPercent(25);
@@ -152,58 +155,115 @@ void turnTester(double inches){
     Sleep(3.0);
 }
 void setUpServo(){
+    //armServo starts upright
     arm_servo.SetMin(650);
-    arm_servo.SetMax(1830);//Set arm servo to 0 degrees robot_arm.SetDegree(0);
+    arm_servo.SetMax(1830);
     arm_servo.SetDegree(180);
+    //slide servo starts down
+    slide_servo.SetMin(790);
+    slide_servo.SetMax(2500);
+    slide_servo.SetDegree(0);
 }
-int main() {
+void goUpRamp(){
+    
     //90 degree = 3.34 inches, 136 counts
 //45 dergree = 1.66 inches, 68 counts
 
  //Pseudocode for 2nd preformance task
  setUpServo();
+ left_motor.SetPercent(-25);
+ right_motor.SetPercent(25);
+ Sleep(3.5);
+ left_motor.SetPercent(-25);
+ right_motor.SetPercent(-25);
+ Sleep(.65);
+
+ left_motor.SetPercent(-60);
+ right_motor.SetPercent(60);
+ Sleep(2.0);
+ left_motor.SetPercent(25);
+ right_motor.SetPercent(25);
+ Sleep(.80);
+}
+int main() {
+
+    goUpRamp();
+    // while(true){
+    //     LCD.Write("LeftSwitch: ");
+    //     LCD.WriteLine(topLeftSwitch.Value());
+    //     LCD.Write("RightSwitch: ");
+    //     LCD.WriteLine(topRightSwitch.Value());
+    //     Sleep(3.0);
+    // }
+ 
  //Robot navigates to the top of the ramp
 
- move_forward(25,19 * 41);
- turn_right(25,68);
- move_forward(25,26*41);
+//  move_forward(25,(int)(18.5 * counts));
+//  turn_right(25,58);
+//  move_forward(60,27*counts);
  // robot turns left and goes until it finds the line
- turn_left(25,68);
+//  turn_left(25,68);
  while(!senseLine()){
      left_motor.SetPercent(-25);
      right_motor.SetPercent(25);
  }
+ Sleep(.75);
  
- //robot turns to allign with line
- turn_left(25,136);
+ //robot turns to allign with sink
+left_motor.SetPercent(25);
+ right_motor.SetPercent(25);
+ Sleep(1.95);
+
  // robot follows line to sink
  //while(topLeftSwitch.Value() || topRightSwitch.Value()){
-    followLine();
+    //followLine();
  //}
+ //while(topLeftSwitch.Value() && topRightSwitch.Value()){
+     left_motor.SetPercent(-25);
+    right_motor.SetPercent(25);
+    
+ //}
+
+ 
+ Sleep(3.0);
+ //LCD.WriteLine("Line has been followed");
  left_motor.SetPercent(0);
  right_motor.SetPercent(0);
- Sleep(2.0);
+ Sleep(1.0);
  // robot alligns itself with sink-tbd
  //robot deposits tray
-arm_servo.SetDegree(130);
-
+arm_servo.SetDegree(90);
+Sleep(3.0);
+arm_servo.SetDegree(170);
  //robot backs up
- move_forward(-25,1 * 41);
+ left_motor.SetPercent(25);
+ right_motor.SetPercent(-25);
+ Sleep(1.0);
  //robot turns 45 degrees left
- turn_left(25,68);
+ left_motor.SetPercent(25);
+ right_motor.SetPercent(25);
+ Sleep(.65);
  //robot moves 5.5 inches forward
- move_forward(52, 5*41 + 21);  //5.5 inches 
+ left_motor.SetPercent(-25);
+ right_motor.SetPercent(25);
+ Sleep(2.6);
  //robot turns 45 degrees left 
- turn_left(25,68);
+ left_motor.SetPercent(25);
+ right_motor.SetPercent(25);
+ Sleep(.65);
  //robot moves forward until it rams the wall
  while(topLeftSwitch.Value() || topRightSwitch.Value()){
     left_motor.SetPercent(-25);
     right_motor.SetPercent(25);
  }   
- Sleep(2.0);
  //robot extends "pusher"
+ slide_servo.SetDegree(120);
  //Robot backs up
- move_forward(-15,5*41);
+ left_motor.SetPercent(25);
+ right_motor.SetPercent(-25);
+ Sleep(1.5);
+ left_motor.SetPercent(0);
+ right_motor.SetPercent(0);
 }
 void jukeBoxButton(){
     //false is blue, true is red
@@ -329,7 +389,9 @@ enum LineStates {
 void followLine(){
     
     int state = MIDDLE; // Set the initial state
-    while (senseLine() && (topLeftSwitch.Value() || topRightSwitch.Value())) { // I will follow this line while at least one of the bumper switches is unpressed
+    float t_now;
+    t_now = TimeNow();
+    while (senseLine()) { // I will follow this line forever!
         switch(state) {
             // If I am in the middle of the line...
             case MIDDLE:
@@ -392,6 +454,10 @@ void followLine(){
         }
         left_motor.SetPercent(0);
         right_motor.SetPercent(0);
+
+        LCD.WriteLine("Line followed");
+        
+        
 }
 
 void moveTillLine() {
