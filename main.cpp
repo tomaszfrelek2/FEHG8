@@ -214,26 +214,23 @@ left_motor.SetPercent(25);
  right_motor.SetPercent(25);
  Sleep(1.95);
 
- // robot follows line to sink
- //while(topLeftSwitch.Value() || topRightSwitch.Value()){
-    //followLine();
- //}
- //while(topLeftSwitch.Value() && topRightSwitch.Value()){
+
+     //robot rams the sink
      left_motor.SetPercent(-25);
     right_motor.SetPercent(25);
     
- //}
+ 
 
  
- Sleep(3.0);
- //LCD.WriteLine("Line has been followed");
+ Sleep(1.0);
  left_motor.SetPercent(0);
  right_motor.SetPercent(0);
  Sleep(1.0);
  // robot alligns itself with sink-tbd
  //robot deposits tray
-arm_servo.SetDegree(90);
-Sleep(3.0);
+arm_servo.SetDegree(180);
+Sleep(2.0);
+slide_servo.SetDegree(180);
 arm_servo.SetDegree(170);
  //robot backs up
  left_motor.SetPercent(25);
@@ -246,24 +243,50 @@ arm_servo.SetDegree(170);
  //robot moves 5.5 inches forward
  left_motor.SetPercent(-25);
  right_motor.SetPercent(25);
- Sleep(2.6);
+ Sleep(2.85);
  //robot turns 45 degrees left 
  left_motor.SetPercent(25);
  right_motor.SetPercent(25);
  Sleep(.65);
+//move forward
+  left_motor.SetPercent(-25);
+ right_motor.SetPercent(25);
+ Sleep(.90);
+ //turn right
+ left_motor.SetPercent(-25);
+ right_motor.SetPercent(-25);
+ Sleep(.3);
+ //move forward slightly
+ left_motor.SetPercent(-25);
+ right_motor.SetPercent(25);
+ Sleep(.50);
+ //straighten out
+ left_motor.SetPercent(25);
+ right_motor.SetPercent(25);
+ Sleep(.3);
+ 
  //robot moves forward until it rams the wall
  while(topLeftSwitch.Value() || topRightSwitch.Value()){
     left_motor.SetPercent(-25);
     right_motor.SetPercent(25);
  }   
  //robot extends "pusher"
- slide_servo.SetDegree(120);
+ slide_servo.SetDegree(110);
  //Robot backs up
  left_motor.SetPercent(25);
  right_motor.SetPercent(-25);
- Sleep(1.5);
- left_motor.SetPercent(0);
+ Sleep(1.8);
+
+ //robot turns towards burger
+ left_motor.SetPercent(25);
  right_motor.SetPercent(0);
+ Sleep(1.3);
+ while(topLeftSwitch.Value() || topRightSwitch.Value()){
+    left_motor.SetPercent(-25);
+    right_motor.SetPercent(25);
+ }  
+ left_motor.SetPercent(0);
+right_motor.SetPercent(0);
 }
 void jukeBoxButton(){
     //false is blue, true is red
