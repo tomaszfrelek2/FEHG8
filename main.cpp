@@ -33,7 +33,8 @@ DigitalInputPin topLeftSwitch(FEHIO::P3_0);
 DigitalInputPin topRightSwitch(FEHIO::P0_7);
 DigitalInputPin bottomLeftSwitch(FEHIO::P3_1);
 DigitalInputPin bottomRightSwitch(FEHIO::P0_1);
-int counts = 19;
+int countsPerInch = 41;
+float countsPerDegree = 2.48;
 
 //minimum value to detect line, sensor value must be greater to trigger line sensors
 float leftCriticalValue = 2.0;
@@ -71,7 +72,11 @@ void move_forward(int, int);
 void goFromJukeBoxToRamp();
 void jukeBoxButton();
 
-
+void secondPreformanceTest(){
+    goUpRamp();
+    trayDeposit();
+    ticketSlide();
+}
 void testSensors(){
     LCD.Write("CDS value: ");
     LCD.WriteLine(cdsCell.Value());
@@ -171,6 +176,8 @@ void goUpRamp(){
 
  //Pseudocode for 2nd preformance task
  setUpServo();
+  //Robot navigates to the top of the ramp
+
  left_motor.SetPercent(-25);
  right_motor.SetPercent(25);
  Sleep(3.5);
@@ -181,30 +188,14 @@ void goUpRamp(){
  left_motor.SetPercent(-60);
  right_motor.SetPercent(60);
  Sleep(2.0);
+ //robot turns left
  left_motor.SetPercent(25);
  right_motor.SetPercent(25);
  Sleep(.80);
 }
-int main() {
-    while(!senseLight()){
-        
-    }
-    goUpRamp();
-    // while(true){
-    //     LCD.Write("LeftSwitch: ");
-    //     LCD.WriteLine(topLeftSwitch.Value());
-    //     LCD.Write("RightSwitch: ");
-    //     LCD.WriteLine(topRightSwitch.Value());
-    //     Sleep(3.0);
-    // }
- 
- //Robot navigates to the top of the ramp
 
-//  move_forward(25,(int)(18.5 * counts));
-//  turn_right(25,58);
-//  move_forward(60,27*counts);
- // robot turns left and goes until it finds the line
-//  turn_left(25,68);
+void trayDeposit(){
+// goes until it finds the line
  while(!senseLine()){
      left_motor.SetPercent(-25);
      right_motor.SetPercent(25);
@@ -235,7 +226,10 @@ arm_servo.SetDegree(50);
 Sleep(2.0);
 slide_servo.SetDegree(180);
 arm_servo.SetDegree(170);
- //robot backs up
+}
+
+void ticketSlide(){
+//robot backs up
  //while(!senseLine()){
      left_motor.SetPercent(25);
     right_motor.SetPercent(-25);
@@ -262,23 +256,7 @@ arm_servo.SetDegree(170);
     right_motor.SetPercent(25);
  }   
 
-//  //move backward
-//   left_motor.SetPercent(25);
-//  right_motor.SetPercent(-25);
-//  Sleep(.20);
-//  //turn right
-//  left_motor.SetPercent(-25);
-//  right_motor.SetPercent(-25);
-//  Sleep(.3);
-//  //move forward slightly
-//  left_motor.SetPercent(-25);
-//  right_motor.SetPercent(25);
-//  Sleep(.2);
-//  left_motor.SetPercent(0);
-//  //straighten out
-// //  left_motor.SetPercent(25);
-// //  right_motor.SetPercent(25);
-//  Sleep(.3);
+
  //robot extends "pusher"
  slide_servo.SetDegree(90);
  //Robot backs up
@@ -297,6 +275,15 @@ arm_servo.SetDegree(170);
  }  
  left_motor.SetPercent(0);
 right_motor.SetPercent(0);
+}
+int main() {
+    
+    
+ 
+
+
+ 
+ 
 }
 void jukeBoxButton(){
     //false is blue, true is red
