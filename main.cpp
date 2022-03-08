@@ -33,7 +33,7 @@ DigitalInputPin topLeftSwitch(FEHIO::P3_0);
 DigitalInputPin topRightSwitch(FEHIO::P0_7);
 DigitalInputPin bottomLeftSwitch(FEHIO::P3_1);
 DigitalInputPin bottomRightSwitch(FEHIO::P0_1);
-int countsPerInch = 41;
+float countsPerInch = 40.5;
 float countsPerDegree = 2.48;
 
 //minimum value to detect line, sensor value must be greater to trigger line sensors
@@ -71,7 +71,9 @@ void turnToLine(int,int);
 void move_forward(int, int);
 void goFromJukeBoxToRamp();
 void jukeBoxButton();
-
+void goUpRamp();
+void trayDeposit();
+void ticketSlide();
 void secondPreformanceTest(){
     goUpRamp();
     trayDeposit();
@@ -277,13 +279,74 @@ void ticketSlide(){
 right_motor.SetPercent(0);
 }
 int main() {
-    
-    
+    move_forward(25, (int) (14 * countsPerInch));
+    turn_right(25, (int) (45 * countsPerDegree));
+    move_forward(60, (int) (32 * countsPerInch));
+    turn_right(25,(int) (90 * countsPerDegree));
+    while(topLeftSwitch.Value() || topRightSwitch.Value()){
+    left_motor.SetPercent(-25);
+    right_motor.SetPercent(25);
+ }  
+   left_motor.SetPercent(0);
+   right_motor.SetPercent(0);
+
  
 
 
  
  
+}
+void RPS(){
+    //Declare variables
+    float touch_x, touch_y;
+    int n;
+    char points[4] = {'A','B','C','D'};
+
+    //Call this function to initialize the RPS to a course
+    RPS.InitializeTouchMenu();
+
+    //Open SD file for writing
+    FEHFile *fptr = SD.FOpen("RPS_Test.txt","w");
+
+    //Wait for touchscreen to be pressed and released
+    LCD.WriteLine("Press Screen to Start");
+    while(!LCD.Touch(&touch_x, &touch_y));
+    while(LCD.Touch(&touch_x, &touch_y));
+
+    //Clear screen
+    LCD.Clear();
+
+    //Write initial screen info
+    LCD.WriteRC("X Position:",2,0);
+    LCD.WriteRC("Y Position:",3,0);
+    LCD.WriteRC("   Heading:",4,0);
+
+    //Step through each path point to record position and heading
+    for (n=0; n<=3; n++)
+    {
+        //Write point letter
+        LCD.WriteRC("Touch to set point ",0,0);
+        LCD.WriteRC(points[n],0,20);
+
+        //Wait for touchscreen to be pressed and display RPS data
+        while(!LCD.Touch(&touch_x, &touch_y))
+        {
+            LCD.WriteRC(RPS.X(),2,12); //update the x coordinate
+            LCD.WriteRC(RPS.Y(),3,12); //update the y coordinate
+            LCD.WriteRC(RPS.Heading(),4,12); //update the heading
+
+            Sleep(10); //wait for a 10ms to avoid updating the screen too quickly
+        }
+        while(LCD.Touch(&touch_x, &touch_y));
+
+        //Print RPS data for this path point to file
+        SD.FPrintf(fptr, "%f %f\n", RPS.X(), RPS.Y());
+    }
+
+    //Close SD file
+    SD.FClose(fptr);
+
+    return 0;
 }
 void jukeBoxButton(){
     //false is blue, true is red
