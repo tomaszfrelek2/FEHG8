@@ -60,7 +60,8 @@ FEHMotor new_motor(FEHMotor::Motor2,9.0);
 FEHServo arm_servo(FEHServo::Servo3);
 //min is up, max is down
 FEHServo slide_servo(FEHServo::Servo7);
-
+//flip servo
+FEHServo flip_servo(FEHServo::Servo0);
 
 bool senseLine();
 bool senseLight();
@@ -170,6 +171,10 @@ void setUpServo(){
     slide_servo.SetMin(540);
     slide_servo.SetMax(2311);
     slide_servo.SetDegree(0);
+    //initialize flip servo servo, 90 degrees is horizontal
+    flip_servo.SetMin(750);
+    flip_servo.SetMax(2325);
+    flip_servo.SetDegree(95);
 }
 void goUpRamp(){
     
@@ -278,25 +283,31 @@ void ticketSlide(){
  left_motor.SetPercent(0);
 right_motor.SetPercent(0);
 }
-int main() {
-    move_forward(25, (int) (14 * countsPerInch));
+void moveUpRampShaftEncoding(){
+    move_forward(25, (int) (15 * countsPerInch));
+    Sleep(3.0);
     turn_right(25, (int) (45 * countsPerDegree));
+    Sleep(3.0);
     move_forward(60, (int) (32 * countsPerInch));
+    Sleep(3.0);
     turn_right(25,(int) (90 * countsPerDegree));
+    Sleep(3.0);
     while(topLeftSwitch.Value() || topRightSwitch.Value()){
     left_motor.SetPercent(-25);
     right_motor.SetPercent(25);
  }  
    left_motor.SetPercent(0);
    right_motor.SetPercent(0);
-
+}
+int main() {
+    setUpServo();    
  
 
 
  
  
 }
-void RPS(){
+int RPSProgram(){
     //Declare variables
     float touch_x, touch_y;
     int n;
