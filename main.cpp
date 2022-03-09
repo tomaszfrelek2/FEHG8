@@ -300,7 +300,7 @@ void moveUpRampShaftEncoding(){
    right_motor.SetPercent(0);
 }
 int main() {
-    setUpServo();    
+    //setUpServo();    
  
 
 
