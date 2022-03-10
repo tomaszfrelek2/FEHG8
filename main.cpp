@@ -174,7 +174,7 @@ void setUpServo(){
     //initialize flip servo servo, 90 degrees is horizontal
     flip_servo.SetMin(750);
     flip_servo.SetMax(2325);
-    flip_servo.SetDegree(95);
+    flip_servo.SetDegree(80);
 }
 void goUpRamp(){
     
@@ -283,12 +283,13 @@ void ticketSlide(){
  left_motor.SetPercent(0);
 right_motor.SetPercent(0);
 }
+
 void moveUpRampShaftEncoding(){
-    move_forward(25, (int) (15 * countsPerInch));
+    move_forward(25, (int) (11 * countsPerInch));
     Sleep(3.0);
     turn_right(25, (int) (45 * countsPerDegree));
     Sleep(3.0);
-    move_forward(60, (int) (32 * countsPerInch));
+    move_forward(60, (int) (39 * countsPerInch));
     Sleep(3.0);
     turn_right(25,(int) (90 * countsPerDegree));
     Sleep(3.0);
@@ -299,9 +300,21 @@ void moveUpRampShaftEncoding(){
    left_motor.SetPercent(0);
    right_motor.SetPercent(0);
 }
+
+void burgerFlip(){
+    move_forward(-25,(int) (4.5 * countsPerInch));
+    turn_right(25, (int) (100 * countsPerDegree));
+    move_forward(-25,(int) (6.5 * countsPerInch));
+    flip_servo.SetDegree(180); 
+    Sleep(2.0);
+    flip_servo.SetDegree(80); 
+
+
+}
 int main() {
-    setUpServo();    
- 
+    setUpServo();   
+    // moveUpRampShaftEncoding();
+    burgerFlip();
 
 
  
