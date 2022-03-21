@@ -75,6 +75,21 @@ void jukeBoxButton();
 void goUpRamp();
 void trayDeposit();
 void ticketSlide();
+void thirdPreformanceTest(){
+    setUpServo();   
+
+    while(!senseLight()) {
+
+    }
+
+    moveUpRampShaftEncoding();
+    burgerFlip();
+    iceCreamBonus();
+
+    move_forward(-25, (int) (4 * countsPerInch));
+    LCD.WriteLine("Finish"); 
+}
+
 void secondPreformanceTest(){
     goUpRamp();
     trayDeposit();
@@ -333,18 +348,7 @@ void iceCreamBonus() {
 }
 
 int main() {
-    setUpServo();   
-
-    while(!senseLight()) {
-
-    }
-
-    moveUpRampShaftEncoding();
-    burgerFlip();
-    iceCreamBonus();
-
-    move_forward(-25, (int) (4 * countsPerInch));
-    LCD.WriteLine("Finish"); 
+    
 }
 int RPSProgram(){
     //Declare variables
