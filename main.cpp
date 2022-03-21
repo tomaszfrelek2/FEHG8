@@ -285,7 +285,7 @@ right_motor.SetPercent(0);
 }
 
 void moveUpRampShaftEncoding(){
-    move_forward(25, (int) (11 * countsPerInch));
+    move_forward(25, (int) (13 * countsPerInch));
     Sleep(3.0);
     turn_right(25, (int) (45 * countsPerDegree));
     Sleep(3.0);
@@ -307,18 +307,44 @@ void burgerFlip(){
     move_forward(-25,(int) (6.5 * countsPerInch));
     flip_servo.SetDegree(180); 
     Sleep(2.0);
-    flip_servo.SetDegree(80); 
-
-
+    flip_servo.SetDegree(60); 
 }
+
+//flip
+void iceCreamBonus() {
+    move_forward(25, (int) (8 * countsPerInch));
+    Sleep(1.0);
+    turn_right(25, (int) (100 * countsPerDegree));
+    move_forward(25, (int) (6 * countsPerInch));
+    Sleep(1.0);
+    turn_right(25, (int) (50 * countsPerDegree));
+    move_forward(25, (int) (5 * countsPerInch));
+    Sleep(1.0);
+    arm_servo.SetDegree(120);
+    Sleep(1.0);
+    arm_servo.SetDegree(180);
+    Sleep(1.0);
+    move_forward(-25, (int) (4 * countsPerInch));
+    arm_servo.SetDegree(30);
+    Sleep(1.0);
+    move_forward(25, (int) (3 * countsPerInch));
+    Sleep(1.0);
+    arm_servo.SetDegree(70);
+}
+
 int main() {
     setUpServo();   
-    // moveUpRampShaftEncoding();
+
+    while(!senseLight()) {
+
+    }
+
+    moveUpRampShaftEncoding();
     burgerFlip();
+    iceCreamBonus();
 
-
- 
- 
+    move_forward(-25, (int) (4 * countsPerInch));
+    LCD.WriteLine("Finish"); 
 }
 int RPSProgram(){
     //Declare variables
