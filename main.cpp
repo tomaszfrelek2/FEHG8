@@ -75,6 +75,10 @@ void jukeBoxButton();
 void goUpRamp();
 void trayDeposit();
 void ticketSlide();
+void burgerFlip();
+void setUpServo();
+void iceCreamBonus();
+void moveUpRampShaftEncoding();
 void thirdPreformanceTest(){
     setUpServo();   
 
@@ -316,6 +320,20 @@ void moveUpRampShaftEncoding(){
    right_motor.SetPercent(0);
 }
 
+void moveUpRampPT4(){
+    move_forward(25, (int) (14.5 * countsPerInch));
+    Sleep(3.0);
+    turn_right(25, (int) (45 * countsPerDegree));
+    Sleep(3.0);
+    move_forward(60, (int) (33 * countsPerInch));
+    Sleep(3.0);
+    turn_left(25,(int) (47 * countsPerDegree));
+    Sleep(3.0);
+    
+   left_motor.SetPercent(0);
+   right_motor.SetPercent(0);
+}
+
 void burgerFlip(){
     move_forward(-25,(int) (4.5 * countsPerInch));
     turn_right(25, (int) (100 * countsPerDegree));
@@ -346,9 +364,47 @@ void iceCreamBonus() {
     Sleep(1.0);
     arm_servo.SetDegree(70);
 }
+void leverFlip(int lever){
+    
+    if(lever == 0){//if left lever is the target
+        turn_left(25,(int) (30 * countsPerDegree));
+        move_forward(25,(int) (7.5 * countsPerInch));
+        turn_right(25,(int) (30 * countsPerDegree));
+        move_forward(25,(int) (5.5 * countsPerInch));
+    }
+    else if(lever == 2){//if right lever is the target
+        turn_right(25,(int) (30 * countsPerDegree));
+        move_forward(25,(int) (6.5 * countsPerInch));
+        turn_left(25,(int) (30 * countsPerDegree));
+        move_forward(25,(int) (5.5 * countsPerInch));
+    }else{//if middle lever is the target
+    move_forward(25,(int) (9.5 * countsPerInch));
+    }
+    arm_servo.SetDegree(120);
+    Sleep(1.0);
+    arm_servo.SetDegree(180);
+    Sleep(1.0);
+    move_forward(-25, (int) (4 * countsPerInch));
+    arm_servo.SetDegree(30);
+    Sleep(1.0);
+    move_forward(25, (int) (3 * countsPerInch));
+    Sleep(1.0);
+    arm_servo.SetDegree(70);
+    Sleep(0.5);
+    move_forward(-25,(int) (3 * countsPerInch));
+}
 
 int main() {
     
+    RPS.InitializeTouchMenu();
+    //int lever = RPS.GetIceCream();
+    LCD.WriteLine(RPS.GetIceCream());
+    setUpServo();
+    moveUpRampPT4();
+    leverFlip(RPS.GetIceCream());
+    
+    //RPS.GetIceCreamLever 0-left, 1-mid, 2-right
+
 }
 int RPSProgram(){
     //Declare variables
