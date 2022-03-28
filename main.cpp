@@ -38,10 +38,10 @@ float countsPerDegree = 2.48;
 
 //minimum value to detect line, sensor value must be greater to trigger line sensors
 // float leftCriticalValue = 2.0;
- float leftCriticalValue = 5.0;
+ float leftCriticalValue = 2.7;
 
 float rightCriticalValue = 1.0;
-float midCriticalValue = 2.5;
+float midCriticalValue = 2.7;
 
 
 //limit value to detect light, sensor value must be lower to trigger light sensor
@@ -67,6 +67,8 @@ FEHServo slide_servo(FEHServo::Servo7);
 FEHServo flip_servo(FEHServo::Servo0);
 
 bool senseLine();
+void moveTillCollision(int);
+void moveTillLine();
 bool senseLight();
 void followLine();
 void turn_right(int , int );
@@ -88,26 +90,9 @@ void setUpServo();
 void iceCreamBonus();
 void moveUpRampShaftEncoding();
 
-void thirdPreformanceTest(){
-    setUpServo();   
 
-    while(!senseLight()) {
 
-    }
 
-    moveUpRampShaftEncoding();
-    burgerFlip();
-    iceCreamBonus();
-
-    move_forward(-25, (int) (4 * countsPerInch));
-    LCD.WriteLine("Finish"); 
-}
-
-void secondPreformanceTest(){
-    goUpRamp();
-    trayDeposit();
-    ticketSlide();
-}
 void testSensors(){
     LCD.Write("CDS value: ");
     LCD.WriteLine(cdsCell.Value());
@@ -117,10 +102,14 @@ void testSensors(){
     LCD.WriteLine(right_opt.Value());
     LCD.Write("left value");
     LCD.WriteLine(left_opt.Value());
-    LCD.Write("top left switch");
+    LCD.Write("top left switch: ");
     LCD.WriteLine(topLeftSwitch.Value());
-    LCD.Write("top right switch");
+    LCD.Write("top right switch: ");
     LCD.WriteLine(topRightSwitch.Value());
+    LCD.Write("bottom left switch");
+    LCD.WriteLine(bottomLeftSwitch.Value());
+    LCD.Write("bottom right switch");
+    LCD.WriteLine(bottomRightSwitch.Value());
     Sleep(3.0);
 }
 
@@ -179,17 +168,15 @@ void setUpForJukeBox(){
 
      LCD.WriteLine("Turned");
 }
-void firstPreformanceTask(){
-        setUpForJukeBox();
-        jukeBoxButton();
-        goFromJukeBoxToRamp();
-}
+
+
 void turnTester(double inches){
     int turnRad = (int) (inches * 41);
     turn_right(25, turnRad);
     LCD.WriteLine(turnRad);
     Sleep(3.0);
 }
+
 void setUpServo(){
     //armServo starts upright
     arm_servo.SetMin(650);
@@ -204,62 +191,26 @@ void setUpServo(){
     flip_servo.SetMax(2325);
     flip_servo.SetDegree(80);
 }
-void goUpRamp(){
-    
-    //90 degree = 3.34 inches, 136 counts
-//45 dergree = 1.66 inches, 68 counts
 
- //Pseudocode for 2nd preformance task
- setUpServo();
-  //Robot navigates to the top of the ramp
 
- left_motor.SetPercent(-25);
- right_motor.SetPercent(25);
- Sleep(3.5);
- left_motor.SetPercent(-25);
- right_motor.SetPercent(-25);
- Sleep(.65);
-
- left_motor.SetPercent(-60);
- right_motor.SetPercent(60);
- Sleep(2.0);
- //robot turns left
- left_motor.SetPercent(25);
- right_motor.SetPercent(25);
- Sleep(.80);
-}
 
 void trayDeposit(){
 // goes until it finds the line
- while(!senseLine()){
-     left_motor.SetPercent(-25);
-     right_motor.SetPercent(25);
- }
- Sleep(.75);
- 
- //robot turns to allign with sink
-left_motor.SetPercent(25);
- right_motor.SetPercent(25);
- Sleep(1.7);
-
-
-     //robot rams the sink
-     
-     left_motor.SetPercent(-25);
-    right_motor.SetPercent(25);
-
-Sleep(1.5);
- 
-
- 
- left_motor.SetPercent(0);
- right_motor.SetPercent(25);
- Sleep(1.0);
- // robot alligns itself with sink-tbd
+ moveTillLine();
+ //follows line
+ followLine();
+    LCD.Write("top left switch: ");
+    LCD.WriteLine(topLeftSwitch.Value());
+    LCD.Write("top right switch: ");
+    LCD.WriteLine(topRightSwitch.Value()); // robot alligns itself with sink
+ moveTillCollision(0);
+    LCD.Write("top left switch: ");
+    LCD.WriteLine(topLeftSwitch.Value());
+    LCD.Write("top right switch: ");
+    LCD.WriteLine(topRightSwitch.Value()); // robot alligns itself with sink
  //robot deposits tray
 arm_servo.SetDegree(50);
 Sleep(2.0);
-slide_servo.SetDegree(180);
 arm_servo.SetDegree(170);
 }
 
@@ -311,31 +262,16 @@ void ticketSlide(){
 right_motor.SetPercent(0);
 }
 
-void moveUpRampShaftEncoding(){
-    move_forward(25, (int) (13 * countsPerInch));
-    Sleep(3.0);
-    turn_right(25, (int) (45 * countsPerDegree));
-    Sleep(3.0);
-    move_forward(60, (int) (39 * countsPerInch));
-    Sleep(3.0);
-    turn_right(25,(int) (90 * countsPerDegree));
-    Sleep(3.0);
-    while(topLeftSwitch.Value() || topRightSwitch.Value()){
-    left_motor.SetPercent(-25);
-    right_motor.SetPercent(25);
- }  
-   left_motor.SetPercent(0);
-   right_motor.SetPercent(0);
-}
+
 
 void moveUpRampPT4(){
-    move_forward(25, (int) (14.5 * countsPerInch));
+    move_forward(25, (int) (15.25 * countsPerInch));
     Sleep(3.0);
     turn_right(25, (int) (45 * countsPerDegree));
     Sleep(3.0);
-    move_forward(60, (int) (33 * countsPerInch));
+    move_forward(60, (int) (25 * countsPerInch));
     Sleep(3.0);
-    turn_left(25,(int) (47 * countsPerDegree));
+    turn_left(25,(int) (95 * countsPerDegree));
     Sleep(3.0);
     
    left_motor.SetPercent(0);
@@ -351,27 +287,7 @@ void burgerFlip(){
     flip_servo.SetDegree(60); 
 }
 
-//flip
-void iceCreamBonus() {
-    move_forward(25, (int) (8 * countsPerInch));
-    Sleep(1.0);
-    turn_right(25, (int) (100 * countsPerDegree));
-    move_forward(25, (int) (6 * countsPerInch));
-    Sleep(1.0);
-    turn_right(25, (int) (50 * countsPerDegree));
-    move_forward(25, (int) (5 * countsPerInch));
-    Sleep(1.0);
-    arm_servo.SetDegree(120);
-    Sleep(1.0);
-    arm_servo.SetDegree(180);
-    Sleep(1.0);
-    move_forward(-25, (int) (4 * countsPerInch));
-    arm_servo.SetDegree(30);
-    Sleep(1.0);
-    move_forward(25, (int) (3 * countsPerInch));
-    Sleep(1.0);
-    arm_servo.SetDegree(70);
-}
+
 void leverFlip(int lever){
     move_forward(-25,(int) 3 * countsPerInch);
     if(lever == 0){//if left lever is the target
@@ -437,58 +353,22 @@ void leverFlip(int lever){
 
 }
 
-void iceCreamToFinalButton() {
-    move_forward(-25, (int) (6.0 * countsPerInch));
-    turn_right(25, (int) (145 * countsPerDegree)); //turning to face wall close to burger_flip
-    setUpServo();
-    //moving forward until it hits the wall of burger_flip
-    while(topLeftSwitch.Value() || topRightSwitch.Value()){
-        //set left mototr lower than right as left is more powerful
-        left_motor.SetPercent(-23);
-        right_motor.SetPercent(25);
-        Sleep(1.0);
-        LCD.Write("top left switch");
-        LCD.WriteLine(topLeftSwitch.Value());
-        LCD.Write("top right switch");
-        LCD.WriteLine(topRightSwitch.Value());
-    }  
-    left_motor.SetPercent(0);
-    right_motor.SetPercent(0);
-    move_forwardPT4(-25, (int)(13.8 * countsPerInch)); //moving back to go down the ramp
-    turn_right(25, (int) (100 * countsPerDegree)); //turning towards thr ramp
-    //moving forward down the ramp till the wall close to the red button
-    move_forwardPT4(25,(int) (42 * countsPerInch));
-    turn_left(25,(int) (45 * countsPerDegree));
-    move_forwardPT4(25,(int) (2 * countsPerInch));
-    turn_right(25,(int) (45 * countsPerDegree));
 
-    while(topLeftSwitch.Value() || topRightSwitch.Value()){
-        //set left mototr lower than right as left is more powerful
-        left_motor.SetPercent(-23);
-        right_motor.SetPercent(25);
-        Sleep(1.0);
-        LCD.Write("top left switch");
-        LCD.WriteLine(topLeftSwitch.Value());
-        LCD.Write("top right switch");
-        LCD.WriteLine(topRightSwitch.Value());
-    }
-    //turning coding and going forward to ram the button
-    move_forward(-25, (int) (9.8 * countsPerInch));
-    turn_left(25, (int) (45 * countsPerDegree));
-    move_forward(40, (int)(13*countsPerInch));
-}
 int main() {
     
-    RPS.InitializeTouchMenu();
-    //int lever = RPS.GetIceCream();
-    LCD.WriteLine(RPS.GetIceCream());
-    while(!senseLight()){
-    }
+    // while(true){
+    //     testSensors();
+    // }
+    
+    // RPS.InitializeTouchMenu();
+    // //int lever = RPS.GetIceCream();
+    // LCD.WriteLine(RPS.GetIceCream());
+    // while(!senseLight()){
+    // }
     setUpServo();
 
     moveUpRampPT4();
-    leverFlip(RPS.GetIceCream());
-    iceCreamToFinalButton();
+    trayDeposit();
     //RPS.GetIceCreamLever 0-left, 1-mid, 2-right
 
 }
@@ -606,36 +486,7 @@ void jukeBoxButton(){
 
 }
 
-void goFromJukeBoxToRamp(){
-    //Robot drives forward until a rear corner hits the wall
-    while(bottomLeftSwitch.Value() && bottomRightSwitch.Value()){
-        right_motor.SetPercent(-10);
-        left_motor.SetPercent(-25);
-        
-    }
-            if(!bottomLeftSwitch.Value()){
-        while(bottomRightSwitch.Value()){
-            right_motor.SetPercent(-25);
-            left_motor.SetPercent(0);
-        }
-    }//if the top right switch is pressed down, allign the left side of the robot
-    else{
-        while(bottomLeftSwitch.Value()){
-            right_motor.SetPercent(0);
-            left_motor.SetPercent(25);
-        }
-    }
-    //Robot aligns itself with the jukebox
-    right_motor.SetPercent(0);
-    left_motor.SetPercent(0);
 
-    move_forward(25, 533);
-    turn_left(25, 216);
-    move_forward(50, 645);
-    move_forward(-60, 450);
-    LCD.WriteLine("Shleep");
-    Sleep(5.0);
-}
 
 //Returns true if a line is sensed, false otherwise
 bool senseLine(){
@@ -670,7 +521,7 @@ void followLine(){
     int state = MIDDLE; // Set the initial state
     float t_now;
     t_now = TimeNow();
-    while (senseLine()) { // I will follow this line forever!
+    while (senseLine() && (topLeftSwitch.Value() && topRightSwitch.Value())) { // I will follow this line until it ends or until one of the top bump switches is presed
         switch(state) {
             // If I am in the middle of the line...
             case MIDDLE:
@@ -743,50 +594,65 @@ void moveTillLine() {
     int motor_percent = 25;
 
     while(!senseLine()) {
-        left_motor.SetPercent(motor_percent);
+        left_motor.SetPercent(motor_percent - 2);
         right_motor.SetPercent(motor_percent);
     }
+    left_motor.Stop();
+    right_motor.Stop();
     
-    int expected_counts = 326;
-    turnToLine(motor_percent, expected_counts);
+    
 }
 
-void turnToLine(int percent, int counts) {
-    //Reset encoder counts
-    right_encoder.ResetCounts();
-    left_encoder.ResetCounts();
+//forward = 0, backward = 1
+void moveTillCollision(int option){
+    float t_now;
 
-    //Set both motors to desired percent
-    right_motor.SetPercent(-1*percent);
-    left_motor.SetPercent(percent);
+    if(option == 1){
+        while(bottomLeftSwitch.Value() || bottomRightSwitch.Value()){
+            left_motor.SetPercent(23);
+            right_motor.SetPercent(-25);
+        }
+        //if the left switch collides first, turn off the left wheel
+        // else if the right switch collides first, turn off the right wheel
+        if(bottomLeftSwitch.Value() == 0){
+            left_motor.Stop();
+        } else if(bottomRightSwitch.Value() == 0){
+            right_motor.Stop();
+        }
+        //continue trying to hit the wall until both switches are triggered, or 5 seconds have passed
+        t_now = TimeNow();
+        while((bottomLeftSwitch.Value() || bottomRightSwitch.Value()) || (TimeNow()-t_now < 5.0)){        
+            
+        }
 
-    //While the average of the left and right encoder is less than counts,
-    //keep running motors
-    while((left_encoder.Counts() + right_encoder.Counts()) / 2. < counts);
+    } else{
+        //robot moves forward while both buttons are unpressed
+        while(topLeftSwitch.Value() || topRightSwitch.Value()){
+            left_motor.SetPercent(-23);
+            right_motor.SetPercent(25);
+        }
+        //if the left switch collides first, turn off the left wheel
+        // else if the right switch collides first, turn off the right wheel
+        if(topLeftSwitch.Value() == 0){
+            left_motor.Stop();
+        } else if(topRightSwitch.Value() == 0){
+            right_motor.Stop();
+        }
+        //continue trying to hit the wall until both switches are triggered, or 5 seconds have passed
+        t_now = TimeNow();
+        while((topLeftSwitch.Value() || topRightSwitch.Value()) || (TimeNow()-t_now < 5.0)){        
+            
+        }
 
-    //Turn off motors
-    right_motor.Stop();
+
+    }
     left_motor.Stop();
-}
-
-void move_forward(int percent, int counts) //using encoders
-{
-    //Reset encoder counts
-    right_encoder.ResetCounts();
-    left_encoder.ResetCounts();
-
-    //Set both motors to desired percent
-    right_motor.SetPercent(percent);
-    left_motor.SetPercent(-1*percent);
-
-    //While the average of the left and right encoder is less than counts,
-    //keep running motors
-    while((left_encoder.Counts() + right_encoder.Counts()) / 2. < counts);
-
-    //Turn off motors
     right_motor.Stop();
-    left_motor.Stop();
 }
+
+
+
+
 
 void move_forwardTime(int percent, float time) //using encoders
 {
@@ -865,40 +731,38 @@ void turn_left(int percent, int counts) //using encoders
     left_motor.Stop();
 }
 
-void shaftEncoding()
-{
-    int motor_percent = 25; //Input power level here
-    int expected_counts_left = 225;
-    int expected_counts_right = 260;
-    int expected_counts_14inches = 567; //Input theoretical counts here
-    int expected_counts_10inches = 405; //Input theoretical counts here
-    int expected_counts_4inches = 162*2; //Input theoretical counts here
+/* 
+ * Use RPS to move to the desired heading
+ */
+// void check_heading(float heading)
+// {
+//     //You will need to fill out this one yourself and take into account
+//     //checking for proper RPS data and the edge conditions
+//     //(when you want the robot to go to 0 degrees or close to 0 degrees)
 
-    float x, y; //for touch screen
-
-    //Initialize the screen
-    LCD.Clear(BLACK);
-    LCD.SetFontColor(WHITE);
-
-    LCD.WriteLine("Shaft Encoder Exploration Test");
-    LCD.WriteLine("Touch the screen");
-    while(!LCD.Touch(&x,&y)); //Wait for screen to be pressed
-    while(LCD.Touch(&x,&y)); //Wait for screen to be unpressed
-
-    move_forward(motor_percent, expected_counts_14inches);
-    turn_left(motor_percent, expected_counts_left);
-    move_forward(motor_percent, expected_counts_10inches);
-    turn_right(motor_percent, expected_counts_right);
-    move_forward(motor_percent, expected_counts_4inches);
-
-    Sleep(2.0); //Wait for counts to stabilize
-    //Print out data
-    LCD.Write("Theoretical Counts: ");
-    LCD.WriteLine(0);
-    LCD.Write("Motor Percent: ");
-    LCD.WriteLine(motor_percent);
-    LCD.Write("Actual LE Counts: ");
-    LCD.WriteLine(left_encoder.Counts());
-    LCD.Write("Actual RE Counts: ");
-    LCD.WriteLine(right_encoder.Counts());
-}
+//     /*
+//         SUGGESTED ALGORITHM:
+//         1. Check the current orientation of the QR code and the desired orientation of the QR code
+//         2. Check if the robot is within the desired threshold for the heading based on the orientation
+//         3. Pulse in the correct direction based on the orientation
+//     */
+//     // Check if receiving proper RPS coordinates and whether the robot is within an acceptable range
+//     while(( RPS.Heading() >= -1.5) && (RPS.Heading() < heading - 3 || RPS.Heading() > heading + 3))
+//     {   
+//         LCD.Write("Heading: ");
+//          LCD.WriteLine(RPS.Heading());
+//         if(RPS.Heading() > heading)
+//         {
+//             // Pulse the motors for a short duration in the correct direction
+//             pulse_forward(-PULSE_POWER, PULSE_TIME);
+//         }
+//         else if(RPS.Heading() < heading)
+//         {
+//             // Pulse the motors for a short duration in the correct direction
+//            pulse_counterclockwise(PULSE_POWER, PULSE_TIME);
+//         }
+//         Sleep(RPS_WAIT_TIME_IN_SEC);
+//     }
+//     LCD.Write("Heading: ");
+//          LCD.WriteLine(RPS.Heading());
+// }
