@@ -195,19 +195,22 @@ void setUpServo(){
 
 
 void trayDeposit(){
-// goes until it finds the line
- moveTillLine();
- //follows line
- followLine();
-    LCD.Write("top left switch: ");
-    LCD.WriteLine(topLeftSwitch.Value());
-    LCD.Write("top right switch: ");
-    LCD.WriteLine(topRightSwitch.Value()); // robot alligns itself with sink
+    //set arm down so it doesn't colide with lever
+    slide_servo.SetDegree(180);
+// goes until it hits left wall
+ moveTillCollision(0);
+ //backs up and resets arm
+move_forwardPT4(-25,(int) (3 * countsPerInch));
+slide_servo.SetDegree(0);
+ //turns towards sink
+turn_left(25,(int) (countsPerDegree*95));
+
+ 
  moveTillCollision(0);
     LCD.Write("top left switch: ");
     LCD.WriteLine(topLeftSwitch.Value());
     LCD.Write("top right switch: ");
-    LCD.WriteLine(topRightSwitch.Value()); // robot alligns itself with sink
+    LCD.WriteLine(topRightSwitch.Value()); 
  //robot deposits tray
 arm_servo.SetDegree(50);
 Sleep(2.0);
@@ -265,23 +268,23 @@ right_motor.SetPercent(0);
 
 
 void moveUpRampPT4(){
-    move_forward(25, (int) (15.25 * countsPerInch));
+    move_forwardPT4(25, (int) (15.25 * countsPerInch));
     Sleep(3.0);
-    turn_right(25, (int) (45 * countsPerDegree));
+    turn_right(25, (int) (50 * countsPerDegree));
     Sleep(3.0);
-    move_forward(60, (int) (25 * countsPerInch));
+    move_forwardPT4(60, (int) (36.5 * countsPerInch));
     Sleep(3.0);
-    turn_left(25,(int) (95 * countsPerDegree));
+    turn_left(25,(int) (98 * countsPerDegree));
     Sleep(3.0);
-    
+    LCD.WriteLine("Moved Up ramp");
    left_motor.SetPercent(0);
    right_motor.SetPercent(0);
 }
 
 void burgerFlip(){
-    move_forward(-25,(int) (4.5 * countsPerInch));
+    move_forwardPT4(-25,(int) (4.5 * countsPerInch));
     turn_right(25, (int) (100 * countsPerDegree));
-    move_forward(-25,(int) (6.5 * countsPerInch));
+    move_forwardPT4(-25,(int) (6.5 * countsPerInch));
     flip_servo.SetDegree(180); 
     Sleep(2.0);
     flip_servo.SetDegree(60); 
@@ -289,7 +292,7 @@ void burgerFlip(){
 
 
 void leverFlip(int lever){
-    move_forward(-25,(int) 3 * countsPerInch);
+    move_forwardPT4(-25,(int) 3 * countsPerInch);
     if(lever == 0){//if left lever is the target
         turn_left(25,(int) (30 * countsPerDegree));
         //move_forward(25,(int) (7.5 * countsPerInch));
@@ -348,7 +351,7 @@ void leverFlip(int lever){
     Sleep(1.0);
     arm_servo.SetDegree(70);
     Sleep(0.5);
-    move_forward(-25,(int) (3 * countsPerInch));
+    move_forwardPT4(-25,(int) (3 * countsPerInch));
     arm_servo.SetDegree(180);
 
 }
@@ -594,7 +597,7 @@ void moveTillLine() {
     int motor_percent = 25;
 
     while(!senseLine()) {
-        left_motor.SetPercent(motor_percent - 2);
+        left_motor.SetPercent(-motor_percent + 2);
         right_motor.SetPercent(motor_percent);
     }
     left_motor.Stop();
@@ -621,7 +624,7 @@ void moveTillCollision(int option){
         }
         //continue trying to hit the wall until both switches are triggered, or 5 seconds have passed
         t_now = TimeNow();
-        while((bottomLeftSwitch.Value() || bottomRightSwitch.Value()) || (TimeNow()-t_now < 5.0)){        
+        while((bottomLeftSwitch.Value() || bottomRightSwitch.Value()) && (TimeNow()-t_now < 5.0)){        
             
         }
 
@@ -640,7 +643,7 @@ void moveTillCollision(int option){
         }
         //continue trying to hit the wall until both switches are triggered, or 5 seconds have passed
         t_now = TimeNow();
-        while((topLeftSwitch.Value() || topRightSwitch.Value()) || (TimeNow()-t_now < 5.0)){        
+        while((topLeftSwitch.Value() || topRightSwitch.Value()) && (TimeNow()-t_now < 5.0)){        
             
         }
 
