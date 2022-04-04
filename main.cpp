@@ -353,7 +353,7 @@ void burgerFlip(){
 
     //turning to alig with burger flip
     turn_right(25, (int) (110 * countsPerDegree));
-    check_heading(180);
+    check_heading(270);
     //moving back for flipping burger
     move_forwardTime(-35,2.0);
 
