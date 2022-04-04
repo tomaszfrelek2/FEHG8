@@ -49,7 +49,7 @@ AnalogInputPin cdsCell(FEHIO::P3_7);
     
 DigitalInputPin topLeftSwitch(FEHIO::P3_0);
 DigitalInputPin topRightSwitch(FEHIO::P0_7);
-DigitalInputPin bottomLeftSwitch(FEHIO::P3_1);
+DigitalInputPin bottomLeftSwitch(FEHIO::P3_3);
 DigitalInputPin bottomRightSwitch(FEHIO::P0_1);
 float countsPerInch = 40.5;
 float countsPerDegree = 2.48;
@@ -86,6 +86,8 @@ FEHServo slide_servo(FEHServo::Servo7);
 //flip servo
 FEHServo flip_servo(FEHServo::Servo0);
 
+bool burgerFlipSuccess = false;
+
 bool senseLine();
 void moveTillCollision(int);
 void moveTillLine();
@@ -105,15 +107,15 @@ void jukeBoxButton();
 void goUpRamp();
 void trayDeposit();
 void ticketSlide();
-void burgerFlip();
+void burgerFlip(float);
 void setUpServo();
 void iceCreamBonus();
 void moveUpRampShaftEncoding();
 void trayToTickey();
-void sliderToFlip();
+void sliderToFlip(float);
 void leverFlip(int);
 void reverseTicket(int);
-void leverToJukebox();
+void leverToJukebox(float);
 void check_heading(float );
 void check_y(float , int );
 void check_x(float , int );
@@ -121,7 +123,28 @@ void turn_counterclockwise(int , int ) ;
 void pulse_counterclockwise(int , float ) ;
 void pulse_forward(int , float ) ;
 void finalButton();
+void wiggle();
 
+void wiggle(){
+    //wiggles 10 times
+    for(int i = 0; i < 10; i++){
+        //shifts left
+        left_motor.SetPercent(50);
+        right_motor.SetPercent(0);
+        Sleep(.1);
+        left_motor.Stop();
+        right_motor.Stop();
+        Sleep(.01);
+        //shifts right
+        left_motor.SetPercent(0);
+        right_motor.SetPercent(50);
+        Sleep(.1);
+        left_motor.Stop();
+        right_motor.Stop();
+        Sleep(.01);
+    }
+
+}
 
 
 
@@ -304,7 +327,7 @@ right_motor.Stop();
 }
 
 
-void sliderToFlip() {
+void sliderToFlip(float heading) {
     //reset slide arm
     slide_servo.SetDegree(180);
     //turn towards the line path following along burger flip
@@ -321,11 +344,11 @@ void sliderToFlip() {
     moveTillCollision(0);
 
     //flip the burger
-    burgerFlip();
+    burgerFlip(heading);
 }
 
 
-void moveUpRampPT4(){
+void moveUpRampPT4(float heading){
     move_forwardPT4(45, (int) (15.5 * countsPerInch));
     Sleep(.5);
     turn_right(25, (int) (55 * countsPerDegree));
@@ -337,7 +360,7 @@ void moveUpRampPT4(){
     Sleep(.5);
     //corrects position
     if((RPS.Y() > 0) && RPS.X() > 0){
-        check_heading(180);
+        check_heading(heading);
     }
 
     LCD.WriteLine("Moved Up ramp");
@@ -347,13 +370,13 @@ void moveUpRampPT4(){
 
 
 
-void burgerFlip(){
+void burgerFlip(float heading){
     //backing up a certain distance
     move_forwardPT4(-25,(int) (2.5* countsPerInch));
 
     //turning to alig with burger flip
     turn_right(25, (int) (110 * countsPerDegree));
-    check_heading(270);
+    check_heading(heading);
     //moving back for flipping burger
     move_forwardTime(-35,2.0);
 
@@ -361,6 +384,7 @@ void burgerFlip(){
     flip_servo.SetDegree(180); 
     Sleep(2.0);
     flip_servo.SetDegree(60); 
+    burgerFlipSuccess = true;
 }
 
 
@@ -437,8 +461,11 @@ void leverFlip(int lever){
     arm_servo.SetDegree(180);
 }
 void burgerToLever(){
-
-    move_forwardPT4(45,(int) (10 * countsPerInch));
+    if(burgerFlipSuccess){
+        move_forwardPT4(45,(int) (10 * countsPerInch));
+    }else{
+        move_forwardPT4(45,(int) (9.5 * countsPerInch));
+    }
     turn_right(45,(int) (90 * countsPerDegree));
     moveTillCollision(1);
     move_forwardPT4(45,(int) (18 * countsPerInch));
@@ -448,7 +475,7 @@ void burgerToLever(){
 
 }
 
-void leverToJukebox() {
+void leverToJukebox(float heading) {
     //move backwards from lever area
     move_forwardPT4(-35, (int) (6.0 * countsPerInch));
 
@@ -464,7 +491,7 @@ void leverToJukebox() {
     
     //turning towards thr ramp
     turn_left(25, (int) (110 * countsPerDegree)); 
-    check_heading(180);
+    check_heading(heading);
      //moving forward down the ramp till the wall close to the red button
     move_forwardPT4(35,(int) (37* countsPerInch));
     turn_left(25,(int) (45 * countsPerDegree));
@@ -476,12 +503,7 @@ void leverToJukebox() {
 
 int main() {
    
-     while(true){
-        LCD.Write("Heading: ");
-        LCD.WriteLine(RPS.Heading());
-        Sleep(1.5);
-
-     }
+     
 
     // while(true){
     //     testSensors();
@@ -498,6 +520,40 @@ int main() {
     // }
     RPS.InitializeTouchMenu();
     LCD.WriteLine(RPS.GetIceCream());
+
+    float touch_x, touch_y;
+    FEHFile *fptr = SD.FOpen("RPS_Heading.txt", "w");
+    
+    for(int i = 0; i < 3; i++) {
+        LCD.WriteLine("Touch to calibrate heading");
+        LCD.WriteLine("");
+
+        while(!LCD.Touch(&touch_x, &touch_y)) {            
+            LCD.Write("Orientation from ramp to: ");
+            LCD.WriteLine(RPS.Heading());
+            Sleep(0.2);
+        }
+        
+        while(LCD.Touch(&touch_x, &touch_y));
+        SD.FPrintf(fptr, "%f\n", RPS.Heading());
+        
+        LCD.WriteLine("Orientation saved!");
+        Sleep(0.4);
+        
+        LCD.SetBackgroundColor(BLACK);        
+    }
+
+    SD.FClose(fptr);
+
+    FEHFile *fptr2 = SD.FOpen("RPS_Heading.txt", "r");
+
+    float upRamp, flip, downRamp;
+    SD.FScanf(fptr2, "%f", &upRamp);
+    SD.FScanf(fptr2, "%f", &flip);
+    SD.FScanf(fptr2, "%f", &downRamp);
+
+    SD.FClose(fptr2);
+
     t_now = TimeNow();
     while(!senseLight() && (TimeNow()-t_now < 30.0)){
 
@@ -506,12 +562,12 @@ int main() {
     
     setUpServo();
 
-    moveUpRampPT4();
+    moveUpRampPT4(upRamp);
     trayDeposit();
     trayToTicketSlide();
-    sliderToFlip();
+    sliderToFlip(flip);
     burgerToLever();
-    leverToJukebox();
+    leverToJukebox(downRamp);
     jukeBoxButton();
     finalButton();
     //RPS.GetIceCreamLever 0-left, 1-mid, 2-right
@@ -887,14 +943,15 @@ void check_heading(float heading)
         3. Pulse in the correct direction based on the orientation
     */
     // Check if receiving proper RPS coordinates and whether the robot is within an acceptable range
-    while(( RPS.Heading() >= 0) && (RPS.Heading() < heading - 3 || RPS.Heading() > heading + 3))
+    t_now = TimeNow();
+    while((( RPS.Heading() >= 0) && (RPS.Heading() < heading - 3 || RPS.Heading() > heading + 3)) && (TimeNow()-t_now < 5.0))
     {   
         LCD.Write("Heading: ");
          LCD.WriteLine(RPS.Heading());
         if(RPS.Heading() > heading)
         {
             // Pulse the motors for a short duration in the correct direction
-            pulse_forward(-PULSE_POWER, PULSE_TIME);
+            pulse_counterclockwise(-PULSE_POWER, PULSE_TIME);
         }
         else if(RPS.Heading() < heading)
         {
