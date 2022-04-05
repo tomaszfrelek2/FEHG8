@@ -58,8 +58,12 @@ float countsPerDegree = 2.48;
 // float leftCriticalValue = 2.0;
  float leftCriticalValue = 5;
 
-float rightCriticalValue = 1.0;
-float midCriticalValue = 2.7;
+float rightCriticalValue = 5;
+float midCriticalValue = 3.0;
+
+float ramp = 180.000;
+float flip = 270.000;
+float slider = 325.00;
 
 
 //limit value to detect light, sensor value must be lower to trigger light sensor
@@ -67,7 +71,7 @@ float cdsCriticalValue = 1.7;
 //values lower, but still higher than red will be treated as blue
 int cdsBlue;
 //values lower will be treated as red
-float cdsRed = 0.8;
+float cdsRed = 0.5;
 
 //rps Coordinates of light is X:10.6, Y:15.7
 
@@ -123,7 +127,11 @@ void turn_counterclockwise(int , int ) ;
 void pulse_counterclockwise(int , float ) ;
 void pulse_forward(int , float ) ;
 void finalButton();
+void setUpRPS();
 void wiggle();
+
+
+
 
 void wiggle(){
     //wiggles 10 times
@@ -146,7 +154,62 @@ void wiggle(){
 
 }
 
+void setUpRPS(){
+     RPS.InitializeTouchMenu();
+    LCD.WriteLine(RPS.GetIceCream());
 
+    float touch_x, touch_y;
+    FEHFile *fptr = SD.FOpen("RPS_TEST.TXT", "w");
+    
+    for(int i = 0; i < 3; i++) {
+        LCD.WriteLine("Touch to calibrate heading");
+        LCD.WriteLine("");
+
+        while(!LCD.Touch(&touch_x, &touch_y)) {            
+            LCD.Write("Orientation: ");
+            LCD.WriteLine(RPS.Heading());
+            Sleep(1.5);
+        }
+        
+        while(LCD.Touch(&touch_x, &touch_y));
+        SD.FPrintf(fptr, "%f\n", RPS.Heading());
+        
+        LCD.WriteLine("Orientation saved!");
+        Sleep(5.0);
+        
+        LCD.SetBackgroundColor(BLACK);        
+    }
+
+    SD.FClose(fptr);
+
+    FEHFile *fptr2 = SD.FOpen("RPS_TEST.TXT", "r");
+
+    SD.FScanf(fptr2, "%f", &ramp);
+    SD.FScanf(fptr2, "%f", &slider);
+    SD.FScanf(fptr2, "%f", &flip);
+    //SD.FScanf(fptr2, "%f", &downRamp);
+
+    SD.FClose(fptr2);
+    LCD.Write("Ramp up: ");
+    LCD.WriteLine(ramp);
+    LCD.Write("Slider: ");
+    LCD.WriteLine(slider);
+    LCD.Write("Flipper: ");
+    LCD.WriteLine(flip);
+    
+    while(!LCD.Touch(&touch_x, &touch_y)) {
+        LCD.WriteLine("Touch screen to complete setup");
+        Sleep(1.5);
+    }
+    LCD.SetBackgroundColor(BLACK);        
+
+    float t_now;
+    t_now = TimeNow();
+    while(!senseLight() && (TimeNow()-t_now < 30.0)){
+
+    }
+    
+}
 
 void testSensors(){
     LCD.Write("CDS value: ");
@@ -235,7 +298,7 @@ void turnTester(double inches){
 void setUpServo(){
     //armServo starts upright
     arm_servo.SetMin(650);
-    arm_servo.SetMax(1830);
+    arm_servo.SetMax(1830);//2180
     arm_servo.SetDegree(180);
     //slide servo starts down
     slide_servo.SetMin(540);
@@ -254,9 +317,9 @@ void trayDeposit(){
 // goes until it hits left wall
  moveTillCollision(0);
  //backs up 
-move_forwardPT4(-45,(int) (3.4 * countsPerInch));
+move_forwardPT4(-45,(int) (3.0 * countsPerInch));
  //turns towards sink and resets arm
-turn_left(25,(int) (countsPerDegree*100));
+turn_left(20,(int) (countsPerDegree*100));
 Sleep(.3);
 slide_servo.SetDegree(0);
  
@@ -274,7 +337,7 @@ arm_servo.SetDegree(170);
 
 
 
-void trayToTicketSlide() {
+void trayToTicketSlide(float heading) {
     //robot backs up (around 8 inches to prevent part collision)
     move_forwardPT4(-35, (int)(9 * countsPerInch));
     
@@ -286,7 +349,9 @@ void trayToTicketSlide() {
     slide_servo.SetDegree(180);
 
     //robot turns 47 degrees left 
-    turn_left(15, (int)(30* countsPerDegree));
+    turn_left(25, (int)(20* countsPerDegree));
+    move_forwardTime(25,.50);
+    check_heading(heading);
     
 
     //adjusts heading
@@ -331,7 +396,7 @@ void sliderToFlip(float heading) {
     //reset slide arm
     slide_servo.SetDegree(180);
     //turn towards the line path following along burger flip
-    move_forwardPT4(-25,(int) (5 * countsPerInch));
+    move_forwardPT4(-25,(int) (4.5 * countsPerInch));
     turn_left(25, (int) (140* countsPerDegree));
     setUpServo();
     //drive forward till that line
@@ -339,6 +404,7 @@ void sliderToFlip(float heading) {
 
     //turn right to get aligned with wall
     turn_right(25, (int) (100 * countsPerDegree));
+    
 
     //move to the wall to adjust
     moveTillCollision(0);
@@ -356,7 +422,7 @@ void moveUpRampPT4(float heading){
     move_forwardPT4(60, (int) (37.75 * countsPerInch));
     
     Sleep(.5);
-    turn_left(25,(int) (100* countsPerDegree));
+    turn_left(25,(int) (105* countsPerDegree));
     Sleep(.5);
     //corrects position
     if((RPS.Y() > 0) && RPS.X() > 0){
@@ -378,7 +444,9 @@ void burgerFlip(float heading){
     turn_right(25, (int) (110 * countsPerDegree));
     check_heading(heading);
     //moving back for flipping burger
-    move_forwardTime(-35,2.0);
+    move_forwardTime(-25,1.0);
+    check_heading(heading);
+    move_forwardTime(-25,1.5);
 
     //setting up the servo and flipping the burger
     flip_servo.SetDegree(180); 
@@ -487,7 +555,14 @@ void leverToJukebox(float heading) {
     moveTillCollision(1);
     
     //moving back to go down the ramp
-    move_forwardPT4(45, (int)(14.5* countsPerInch)); 
+    if(RPS.GetIceCream() == 0){
+        move_forwardPT4(45, (int)(14.5* countsPerInch)); 
+    }else if(RPS.GetIceCream() == 1){
+        move_forwardPT4(45, (int)(15* countsPerInch)); 
+    }else{
+        move_forwardPT4(45, (int)(15.5* countsPerInch)); 
+
+    }
     
     //turning towards thr ramp
     turn_left(25, (int) (110 * countsPerDegree)); 
@@ -501,78 +576,7 @@ void leverToJukebox(float heading) {
     moveTillCollision(0);
 }
 
-int main() {
-   
-     
 
-    // while(true){
-    //     testSensors();
-    // }
-    //     RPS.InitializeTouchMenu();
-
-    // while(true){
-    //    LCD.WriteLine("X: ");
-    //    LCD.WriteLine(RPS.X());
-    //     LCD.WriteLine("Y: ");
-    //    LCD.WriteLine(RPS.Y());
-
-    //     Sleep(1.5);
-    // }
-    RPS.InitializeTouchMenu();
-    LCD.WriteLine(RPS.GetIceCream());
-
-    float touch_x, touch_y;
-    FEHFile *fptr = SD.FOpen("RPS_Heading.txt", "w");
-    
-    for(int i = 0; i < 3; i++) {
-        LCD.WriteLine("Touch to calibrate heading");
-        LCD.WriteLine("");
-
-        while(!LCD.Touch(&touch_x, &touch_y)) {            
-            LCD.Write("Orientation from ramp to: ");
-            LCD.WriteLine(RPS.Heading());
-            Sleep(0.2);
-        }
-        
-        while(LCD.Touch(&touch_x, &touch_y));
-        SD.FPrintf(fptr, "%f\n", RPS.Heading());
-        
-        LCD.WriteLine("Orientation saved!");
-        Sleep(0.4);
-        
-        LCD.SetBackgroundColor(BLACK);        
-    }
-
-    SD.FClose(fptr);
-
-    FEHFile *fptr2 = SD.FOpen("RPS_Heading.txt", "r");
-
-    float upRamp, flip, downRamp;
-    SD.FScanf(fptr2, "%f", &upRamp);
-    SD.FScanf(fptr2, "%f", &flip);
-    SD.FScanf(fptr2, "%f", &downRamp);
-
-    SD.FClose(fptr2);
-
-    t_now = TimeNow();
-    while(!senseLight() && (TimeNow()-t_now < 30.0)){
-
-    }
-
-    
-    setUpServo();
-
-    moveUpRampPT4(upRamp);
-    trayDeposit();
-    trayToTicketSlide();
-    sliderToFlip(flip);
-    burgerToLever();
-    leverToJukebox(downRamp);
-    jukeBoxButton();
-    finalButton();
-    //RPS.GetIceCreamLever 0-left, 1-mid, 2-right
-
-}
 
 int RPSProgram(){
     //Declare variables
@@ -634,7 +638,7 @@ void jukeBoxButton(){
     turn_right(25,(int) (115 * countsPerDegree));
     moveTillCollision(0);
     //robot navigates to light
-    move_forwardPT4(-35,(int) (4* countsPerInch));
+    move_forwardPT4(-35,(int) (3.5* countsPerInch));
     turn_left(25,(int) (105 * countsPerDegree));
     move_forwardPT4(25,(int) (1*countsPerInch));
     //robot senses light
@@ -688,6 +692,19 @@ void finalButton(){
 bool senseLine(){
      if(left_opt.Value() > leftCriticalValue || right_opt.Value() > rightCriticalValue || mid_opt.Value() > midCriticalValue){
          LCD.WriteLine("Line Sensed");
+         LCD.Write("mid value"); 
+    LCD.WriteLine(mid_opt.Value());
+    LCD.WriteLine(midCriticalValue);
+
+
+    LCD.Write("right value");
+    LCD.WriteLine(right_opt.Value());
+    LCD.WriteLine(rightCriticalValue);
+
+
+    LCD.Write("left value");
+    LCD.WriteLine(left_opt.Value());
+    LCD.WriteLine(leftCriticalValue);
          return true;
 
      }else{
@@ -820,8 +837,11 @@ void moveTillCollision(int option){
         //continue trying to hit the wall until both switches are triggered, or 5 seconds have passed
         t_now = TimeNow();
         while((bottomLeftSwitch.Value() || bottomRightSwitch.Value()) && (TimeNow()-t_now < 3.0)){        
-            LCD.WriteLine("Loop");
-            LCD.WriteLine(TimeNow());
+            LCD.Write("Left Switch: ");
+            LCD.WriteLine(topLeftSwitch.Value());
+            LCD.Write("Right Switch: ");
+            LCD.WriteLine(topRightSwitch.Value());
+            Sleep(1.0);
         }
 
     } else{
@@ -840,8 +860,11 @@ void moveTillCollision(int option){
         //continue trying to hit the wall until both switches are triggered, or 5 seconds have passed
         t_now = TimeNow();
         while((topLeftSwitch.Value() || topRightSwitch.Value()) && (TimeNow()-t_now < 3.0)){        
-            LCD.WriteLine("Loop");
-            LCD.WriteLine(TimeNow());
+            LCD.Write("Left Switch: ");
+            LCD.WriteLine(topLeftSwitch.Value());
+            LCD.Write("Right Switch: ");
+            LCD.WriteLine(topRightSwitch.Value());
+            Sleep(1.0);
         }
 
 
@@ -855,8 +878,13 @@ void move_forwardTime(int percent, float time) //using encoders
 
 
     //Set both motors to desired percent
-    right_motor.SetPercent(percent);
-    left_motor.SetPercent(-1*percent);
+    if(percent < 0){
+        right_motor.SetPercent(percent);
+        left_motor.SetPercent((-1*percent) - 2);
+    }else{
+        right_motor.SetPercent(percent);
+        left_motor.SetPercent((-1*percent) + 2);
+    }   
     Sleep(time);
     
 
@@ -943,6 +971,7 @@ void check_heading(float heading)
         3. Pulse in the correct direction based on the orientation
     */
     // Check if receiving proper RPS coordinates and whether the robot is within an acceptable range
+    float t_now;
     t_now = TimeNow();
     while((( RPS.Heading() >= 0) && (RPS.Heading() < heading - 3 || RPS.Heading() > heading + 3)) && (TimeNow()-t_now < 5.0))
     {   
@@ -1074,4 +1103,37 @@ void check_y(float y_coordinate, int orientation)
         }
         Sleep(RPS_WAIT_TIME_IN_SEC);
     }
+
+   
+}
+
+
+ int main() {
+   
+   arm_servo.TouchCalibrate();
+    //  while(true){
+    //     testSensors();
+    //     Sleep(1.5);
+    //  }
+
+    // while(true){
+    //     testSensors();
+    // }
+    //     RPS.InitializeTouchMenu();
+
+    setUpRPS();
+    
+    
+    setUpServo();
+
+    moveUpRampPT4(ramp);
+    trayDeposit();
+    trayToTicketSlide(slider);
+    sliderToFlip(flip);
+    burgerToLever();
+    leverToJukebox(flip);
+    jukeBoxButton();
+    finalButton();
+    //RPS.GetIceCreamLever 0-left, 1-mid, 2-right
+
 }
